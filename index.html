@@ -810,8 +810,22 @@
 
             Object.keys(groupsData).forEach(groupKey => {
                 const group = groupsData[groupKey];
+                
+                // Ensure teamsScores exist for all teams
+                group.teams.forEach(team => {
+                    if (!teamsScores[team]) {
+                        teamsScores[team] = { 
+                            match1: 0, 
+                            match2: 0, 
+                            match3: 0, 
+                            match4: 0, 
+                            total: 0 
+                        };
+                    }
+                });
+                
                 const sortedTeams = [...group.teams].sort((a, b) => {
-                    return teamsScores[b].total - teamsScores[a].total;
+                    return (teamsScores[b]?.total || 0) - (teamsScores[a]?.total || 0);
                 });
 
                 const groupCard = document.createElement('div');
@@ -822,7 +836,7 @@
                 if (matches[groupKey]) {
                     Object.keys(matches[groupKey]).forEach(matchKey => {
                         const match = matches[groupKey][matchKey];
-                        if (match.team1 && match.team2) {
+                        if (match && match.team1 && match.team2) {
                             const matchNum = matchKey.replace('match', '');
                             const winnerText = match.winner ? 
                                 (match.winner === 'team1' ? `🏆 ${match.team1}` : `🏆 ${match.team2}`) : 
@@ -869,11 +883,11 @@
                                     <tr>
                                         <td class="rank-cell rank-${index + 1}">${index + 1}</td>
                                         <td class="team-name-cell">${team}</td>
-                                        <td class="match-cell">${teamsScores[team].match1}</td>
-                                        <td class="match-cell">${teamsScores[team].match2}</td>
-                                        <td class="match-cell">${teamsScores[team].match3}</td>
-                                        <td class="match-cell">${teamsScores[team].match4}</td>
-                                        <td class="score-cell">${teamsScores[team].total}</td>
+                                        <td class="match-cell">${teamsScores[team]?.match1 || 0}</td>
+                                        <td class="match-cell">${teamsScores[team]?.match2 || 0}</td>
+                                        <td class="match-cell">${teamsScores[team]?.match3 || 0}</td>
+                                        <td class="match-cell">${teamsScores[team]?.match4 || 0}</td>
+                                        <td class="score-cell">${teamsScores[team]?.total || 0}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -932,16 +946,29 @@
         }
 
         function updateTeamSelect() {
-            const groupKey = document.getElementById('editGroup').value;
+            const groupKey = document.getElementById('editGroup')?.value;
+            if (!groupKey) return;
+            
             const teamSelect = document.getElementById('editTeam');
+            if (!teamSelect) return;
+            
             teamSelect.innerHTML = groupsData[groupKey].teams.map(team => 
                 `<option value="${team}">${team}</option>`
             ).join('');
 
             const selectedTeam = teamSelect.value;
-            const selectedMatch = document.getElementById('editMatch').value;
-            currentScore = teamsScores[selectedTeam][selectedMatch];
-            document.getElementById('scoreDisplay').textContent = currentScore;
+            const selectedMatch = document.getElementById('editMatch')?.value;
+            
+            if (teamsScores[selectedTeam] && selectedMatch) {
+                currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
+            } else {
+                currentScore = 0;
+            }
+            
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            if (scoreDisplay) {
+                scoreDisplay.textContent = currentScore;
+            }
         }
 
         function updateMatchTeamSelects() {
@@ -990,15 +1017,30 @@
         }
 
         function saveMatch() {
-            const groupKey = document.getElementById('matchGroup').value;
-            const matchNum = document.getElementById('matchNumber').value;
-            const team1 = document.getElementById('team1Select').value;
-            const team2 = document.getElementById('team2Select').value;
-            const winner = document.getElementById('winnerSelect').value;
+            const groupKey = document.getElementById('matchGroup')?.value;
+            const matchNum = document.getElementById('matchNumber')?.value;
+            const team1 = document.getElementById('team1Select')?.value;
+            const team2 = document.getElementById('team2Select')?.value;
+            const winner = document.getElementById('winnerSelect')?.value;
+
+            if (!groupKey || !matchNum || !team1 || !team2) {
+                alert('กรุณาเลือกข้อมูลให้ครบ!');
+                return;
+            }
 
             if (team1 === team2) {
                 alert('ไม่สามารถเลือกทีมเดียวกันได้!');
                 return;
+            }
+
+            // Ensure matches object exists for this group
+            if (!matches[groupKey]) {
+                matches[groupKey] = {
+                    match1: { team1: null, team2: null, winner: null },
+                    match2: { team1: null, team2: null, winner: null },
+                    match3: { team1: null, team2: null, winner: null },
+                    match4: { team1: null, team2: null, winner: null }
+                };
             }
 
             matches[groupKey][matchNum] = {
@@ -1007,21 +1049,35 @@
                 winner: winner || null
             };
 
+            console.log('Saving match:', groupKey, matchNum, matches[groupKey][matchNum]);
+
             saveToFirebase();
             updateMatchList();
             alert('บันทึกแมทช์สำเร็จ! ✅');
         }
 
         function deleteMatch() {
-            const groupKey = document.getElementById('matchGroup').value;
-            const matchNum = document.getElementById('matchNumber').value;
+            const groupKey = document.getElementById('matchGroup')?.value;
+            const matchNum = document.getElementById('matchNumber')?.value;
+
+            if (!groupKey || !matchNum) {
+                alert('กรุณาเลือกกลุ่มและแมทช์!');
+                return;
+            }
 
             if (confirm(`ต้องการลบ ${matchNum} ใช่หรือไม่?`)) {
+                // Ensure matches object exists
+                if (!matches[groupKey]) {
+                    matches[groupKey] = {};
+                }
+
                 matches[groupKey][matchNum] = {
                     team1: null,
                     team2: null,
                     winner: null
                 };
+
+                console.log('Deleting match:', groupKey, matchNum);
 
                 saveToFirebase();
                 updateMatchList();
@@ -1031,6 +1087,8 @@
 
         function updateMatchList() {
             const groupKey = document.getElementById('matchGroup').value;
+            if (!groupKey) return;
+            
             updateMatchTeamSelects();
             
             const container = document.getElementById('matchListContainer');
@@ -1039,7 +1097,7 @@
             if (matches[groupKey]) {
                 Object.keys(matches[groupKey]).forEach(matchKey => {
                     const match = matches[groupKey][matchKey];
-                    if (match.team1 && match.team2) {
+                    if (match && match.team1 && match.team2) {
                         const matchNum = matchKey.replace('match', '');
                         const winnerText = match.winner ? 
                             (match.winner === 'team1' ? `🏆 ${match.team1} ชนะ` : `🏆 ${match.team2} ชนะ`) : 
@@ -1083,6 +1141,10 @@
 
         document.getElementById('editTeam')?.addEventListener('change', updateTeamSelect);
         document.getElementById('editMatch')?.addEventListener('change', updateTeamSelect);
+        document.getElementById('matchGroup')?.addEventListener('change', () => {
+            updateMatchTeamSelects();
+            updateMatchList();
+        });
 
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
