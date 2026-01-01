@@ -929,9 +929,12 @@
         }
 
         function openAdminDashboard() {
-            populateGroupSelects();
-            updateTeamSelect();
-            updateMatchList();
+            // Wait a moment for modal to be visible
+            setTimeout(() => {
+                populateGroupSelects();
+                updateTeamSelect();
+                updateMatchList();
+            }, 100);
             document.getElementById('adminDashboard').classList.add('active');
         }
 
@@ -946,24 +949,35 @@
         }
 
         function updateTeamSelect() {
-            const groupKey = document.getElementById('editGroup')?.value;
-            if (!groupKey) return;
-            
+            const groupSelect = document.getElementById('editGroup');
             const teamSelect = document.getElementById('editTeam');
-            if (!teamSelect) return;
+            const matchSelect = document.getElementById('editMatch');
             
+            if (!groupSelect || !teamSelect || !matchSelect) return;
+            
+            const groupKey = groupSelect.value;
+            if (!groupKey || !groupsData[groupKey]) return;
+            
+            // Update team list
             teamSelect.innerHTML = groupsData[groupKey].teams.map(team => 
                 `<option value="${team}">${team}</option>`
             ).join('');
 
             const selectedTeam = teamSelect.value;
-            const selectedMatch = document.getElementById('editMatch')?.value;
+            const selectedMatch = matchSelect.value;
             
-            if (teamsScores[selectedTeam] && selectedMatch) {
-                currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
-            } else {
-                currentScore = 0;
+            // Ensure team scores exist
+            if (!teamsScores[selectedTeam]) {
+                teamsScores[selectedTeam] = { 
+                    match1: 0, 
+                    match2: 0, 
+                    match3: 0, 
+                    match4: 0, 
+                    total: 0 
+                };
             }
+            
+            currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
             
             const scoreDisplay = document.getElementById('scoreDisplay');
             if (scoreDisplay) {
@@ -989,27 +1003,83 @@
         }
 
         function saveScore() {
-            const team = document.getElementById('editTeam').value;
-            const match = document.getElementById('editMatch').value;
+            const teamSelect = document.getElementById('editTeam');
+            const matchSelect = document.getElementById('editMatch');
+            
+            if (!teamSelect || !matchSelect) {
+                alert('เกิดข้อผิดพลาด: ไม่พบข้อมูล');
+                return;
+            }
+            
+            const team = teamSelect.value;
+            const match = matchSelect.value;
+            
+            if (!team || !match) {
+                alert('กรุณาเลือกทีมและแมทช์');
+                return;
+            }
+            
+            // Ensure team data exists
+            if (!teamsScores[team]) {
+                teamsScores[team] = { 
+                    match1: 0, 
+                    match2: 0, 
+                    match3: 0, 
+                    match4: 0, 
+                    total: 0 
+                };
+            }
             
             teamsScores[team][match] = currentScore;
-            teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2 + 
-                                        teamsScores[team].match3 + teamsScores[team].match4;
+            teamsScores[team].total = (teamsScores[team].match1 || 0) + 
+                                        (teamsScores[team].match2 || 0) + 
+                                        (teamsScores[team].match3 || 0) + 
+                                        (teamsScores[team].match4 || 0);
+            
+            console.log('Saving score:', team, match, currentScore, 'Total:', teamsScores[team].total);
             
             saveToFirebase();
             alert('บันทึกคะแนนสำเร็จ! ✅');
         }
 
         function resetScore() {
-            const team = document.getElementById('editTeam').value;
-            const match = document.getElementById('editMatch').value;
+            const teamSelect = document.getElementById('editTeam');
+            const matchSelect = document.getElementById('editMatch');
+            
+            if (!teamSelect || !matchSelect) {
+                alert('เกิดข้อผิดพลาด: ไม่พบข้อมูล');
+                return;
+            }
+            
+            const team = teamSelect.value;
+            const match = matchSelect.value;
+            
+            if (!team || !match) {
+                alert('กรุณาเลือกทีมและแมทช์');
+                return;
+            }
             
             if (confirm(`ต้องการลบคะแนน ${match} ของทีม ${team} ใช่หรือไม่?`)) {
+                // Ensure team data exists
+                if (!teamsScores[team]) {
+                    teamsScores[team] = { 
+                        match1: 0, 
+                        match2: 0, 
+                        match3: 0, 
+                        match4: 0, 
+                        total: 0 
+                    };
+                }
+                
                 teamsScores[team][match] = 0;
-                teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2 + 
-                                            teamsScores[team].match3 + teamsScores[team].match4;
+                teamsScores[team].total = (teamsScores[team].match1 || 0) + 
+                                            (teamsScores[team].match2 || 0) + 
+                                            (teamsScores[team].match3 || 0) + 
+                                            (teamsScores[team].match4 || 0);
                 currentScore = 0;
                 document.getElementById('scoreDisplay').textContent = currentScore;
+                
+                console.log('Reset score:', team, match);
                 
                 saveToFirebase();
                 alert('ลบคะแนนสำเร็จ! ✅');
@@ -1139,11 +1209,42 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
-        document.getElementById('editTeam')?.addEventListener('change', updateTeamSelect);
-        document.getElementById('editMatch')?.addEventListener('change', updateTeamSelect);
-        document.getElementById('matchGroup')?.addEventListener('change', () => {
-            updateMatchTeamSelects();
-            updateMatchList();
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const editGroup = document.getElementById('editGroup');
+            const editTeam = document.getElementById('editTeam');
+            const editMatch = document.getElementById('editMatch');
+            const matchGroup = document.getElementById('matchGroup');
+
+            if (editGroup) {
+                editGroup.addEventListener('change', updateTeamSelect);
+            }
+            if (editTeam) {
+                editTeam.addEventListener('change', () => {
+                    const selectedTeam = editTeam.value;
+                    const selectedMatch = document.getElementById('editMatch')?.value;
+                    if (teamsScores[selectedTeam] && selectedMatch) {
+                        currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
+                        document.getElementById('scoreDisplay').textContent = currentScore;
+                    }
+                });
+            }
+            if (editMatch) {
+                editMatch.addEventListener('change', () => {
+                    const selectedTeam = document.getElementById('editTeam')?.value;
+                    const selectedMatch = editMatch.value;
+                    if (teamsScores[selectedTeam] && selectedMatch) {
+                        currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
+                        document.getElementById('scoreDisplay').textContent = currentScore;
+                    }
+                });
+            }
+            if (matchGroup) {
+                matchGroup.addEventListener('change', () => {
+                    updateMatchTeamSelects();
+                    updateMatchList();
+                });
+            }
         });
 
         document.querySelectorAll('.modal').forEach(modal => {
