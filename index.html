@@ -71,6 +71,10 @@
             animation: pulse 2s infinite;
         }
 
+        .sync-indicator.disconnected {
+            background: #f5576c;
+        }
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -505,33 +509,6 @@
             display: block;
         }
 
-        .setup-section {
-            background: rgba(0,0,0,0.3);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(0,212,255,0.2);
-        }
-
-        .setup-section h3 {
-            color: #00d4ff;
-            margin-bottom: 15px;
-        }
-
-        .setup-section p {
-            color: #a0aec0;
-            margin-bottom: 10px;
-            line-height: 1.6;
-        }
-
-        .setup-section code {
-            background: rgba(0,0,0,0.5);
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: #43e97b;
-            font-family: monospace;
-        }
-
         @media (max-width: 768px) {
             .groups-grid {
                 grid-template-columns: 1fr;
@@ -570,9 +547,9 @@
     </style>
 </head>
 <body>
-    <div class="sync-status">
-        <div class="sync-indicator"></div>
-        <span>Real-time Sync</span>
+    <div class="sync-status" id="syncStatus">
+        <div class="sync-indicator" id="syncIndicator"></div>
+        <span id="syncText">กำลังเชื่อมต่อ...</span>
     </div>
 
     <div class="header">
@@ -594,55 +571,6 @@
             </div>
             <button class="btn btn-primary" onclick="verifyAdmin()">เข้าสู่ระบบ</button>
             <button class="btn btn-close" onclick="closeModal('adminModal')">ปิด</button>
-        </div>
-    </div>
-
-    <!-- Setup Modal -->
-    <div class="modal" id="setupModal">
-        <div class="modal-content">
-            <div class="modal-header">🔧 ตั้งค่า Firebase</div>
-            
-            <div class="setup-section">
-                <h3>📋 วิธีตั้งค่า Firebase Realtime Database</h3>
-                <p><strong>ขั้นตอนที่ 1:</strong> ไปที่ <a href="https://console.firebase.google.com" target="_blank" style="color: #00d4ff;">Firebase Console</a></p>
-                <p><strong>ขั้นตอนที่ 2:</strong> สร้างโปรเจคใหม่หรือเลือกโปรเจคที่มีอยู่</p>
-                <p><strong>ขั้นตอนที่ 3:</strong> ไปที่ Build → Realtime Database → Create Database</p>
-                <p><strong>ขั้นตอนที่ 4:</strong> เลือก <code>Start in test mode</code> (สำหรับทดสอบ)</p>
-                <p><strong>ขั้นตอนที่ 5:</strong> ไปที่ Project Settings → Your apps → เพิ่ม Web app</p>
-                <p><strong>ขั้นตอนที่ 6:</strong> คัดลอก Firebase Config และใส่ด้านล่าง</p>
-            </div>
-
-            <div class="form-group">
-                <label>Firebase API Key</label>
-                <input type="text" id="apiKey" placeholder="AIzaSy...">
-            </div>
-            <div class="form-group">
-                <label>Auth Domain</label>
-                <input type="text" id="authDomain" placeholder="your-project.firebaseapp.com">
-            </div>
-            <div class="form-group">
-                <label>Database URL</label>
-                <input type="text" id="databaseURL" placeholder="https://your-project.firebaseio.com">
-            </div>
-            <div class="form-group">
-                <label>Project ID</label>
-                <input type="text" id="projectId" placeholder="your-project">
-            </div>
-            <div class="form-group">
-                <label>Storage Bucket</label>
-                <input type="text" id="storageBucket" placeholder="your-project.appspot.com">
-            </div>
-            <div class="form-group">
-                <label>Messaging Sender ID</label>
-                <input type="text" id="messagingSenderId" placeholder="123456789">
-            </div>
-            <div class="form-group">
-                <label>App ID</label>
-                <input type="text" id="appId" placeholder="1:123456789:web:abc123">
-            </div>
-
-            <button class="btn btn-primary" onclick="saveFirebaseConfig()">บันทึกและเชื่อมต่อ</button>
-            <button class="btn btn-close" onclick="closeModal('setupModal')">ปิด</button>
         </div>
     </div>
 
@@ -772,19 +700,37 @@
         let teamsScores = {};
         let matches = {};
 
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBw68QgbiMw3XgpWwrVhSuqgE_xeH0rvPo",
+            authDomain: "pokeex-bb85b.firebaseapp.com",
+            databaseURL: "https://pokeex-bb85b-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "pokeex-bb85b",
+            storageBucket: "pokeex-bb85b.firebasestorage.app",
+            messagingSenderId: "406912833698",
+            appId: "1:406912833698:web:22f9e5b7cdbf3a8f969ffb",
+            measurementId: "G-D3P2N9FH80"
+        };
+
         // Initialize Firebase
         function initializeFirebase() {
-            const config = localStorage.getItem('firebaseConfig');
-            if (!config) {
-                document.getElementById('setupModal').classList.add('active');
-                return false;
-            }
-
             try {
-                const firebaseConfig = JSON.parse(config);
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
                 dataRef = database.ref('tournament');
+
+                // Update sync status
+                updateSyncStatus('connected', 'เชื่อมต่อแล้ว');
+
+                // Listen for connection state
+                const connectedRef = database.ref('.info/connected');
+                connectedRef.on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        updateSyncStatus('connected', 'เชื่อมต่อแล้ว');
+                    } else {
+                        updateSyncStatus('disconnected', 'ไม่ได้เชื่อมต่อ');
+                    }
+                });
 
                 // Listen for real-time updates
                 dataRef.on('value', (snapshot) => {
@@ -801,32 +747,23 @@
                 return true;
             } catch (error) {
                 console.error('Firebase initialization error:', error);
-                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Firebase กรุณาตรวจสอบการตั้งค่า');
-                document.getElementById('setupModal').classList.add('active');
+                updateSyncStatus('disconnected', 'เกิดข้อผิดพลาด');
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Firebase: ' + error.message);
                 return false;
             }
         }
 
-        function saveFirebaseConfig() {
-            const config = {
-                apiKey: document.getElementById('apiKey').value.trim(),
-                authDomain: document.getElementById('authDomain').value.trim(),
-                databaseURL: document.getElementById('databaseURL').value.trim(),
-                projectId: document.getElementById('projectId').value.trim(),
-                storageBucket: document.getElementById('storageBucket').value.trim(),
-                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
-                appId: document.getElementById('appId').value.trim()
-            };
-
-            if (!config.apiKey || !config.databaseURL) {
-                alert('กรุณากรอก API Key และ Database URL อย่างน้อย');
-                return;
+        function updateSyncStatus(status, text) {
+            const indicator = document.getElementById('syncIndicator');
+            const syncText = document.getElementById('syncText');
+            
+            if (status === 'connected') {
+                indicator.classList.remove('disconnected');
+                syncText.textContent = text;
+            } else {
+                indicator.classList.add('disconnected');
+                syncText.textContent = text;
             }
-
-            localStorage.setItem('firebaseConfig', JSON.stringify(config));
-            closeModal('setupModal');
-            alert('บันทึกการตั้งค่าสำเร็จ! กำลังรีโหลดหน้า...');
-            location.reload();
         }
 
         // Initialize data structure
@@ -862,7 +799,7 @@
                     lastUpdated: Date.now()
                 }).catch(error => {
                     console.error('Error saving to Firebase:', error);
-                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + error.message);
                 });
             }
         }
@@ -1157,11 +1094,7 @@
 
         // Initialize on load
         window.addEventListener('load', () => {
-            if (!initializeFirebase()) {
-                // If Firebase not configured, use local data
-                initializeData();
-                renderGroups();
-            }
+            initializeFirebase();
         });
     </script>
 </body>
