@@ -193,7 +193,7 @@
         th {
             padding: 12px 8px;
             text-align: center;
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: #00d4ff;
             font-weight: 600;
             text-transform: uppercase;
@@ -242,7 +242,6 @@
             background: rgba(255,255,255,0.05);
         }
 
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -255,6 +254,7 @@
             z-index: 2000;
             align-items: center;
             justify-content: center;
+            overflow-y: auto;
         }
 
         .modal.active {
@@ -265,11 +265,14 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             padding: 30px;
             border-radius: 20px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             border: 2px solid rgba(0,212,255,0.3);
             animation: modalSlide 0.3s ease-out;
+            margin: 20px 0;
         }
 
         @keyframes modalSlide {
@@ -352,6 +355,17 @@
             background: rgba(255,255,255,0.2);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245,87,108,0.4);
+        }
+
         .score-controls {
             display: flex;
             gap: 10px;
@@ -385,6 +399,106 @@
             text-align: center;
         }
 
+        .admin-menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .admin-menu .btn {
+            width: 100%;
+        }
+
+        .match-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .match-item {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+
+        .match-item h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .match-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .team-vs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e2e8f0;
+            font-size: 0.9em;
+        }
+
+        .vs-text {
+            color: #7b2ff7;
+            font-weight: bold;
+        }
+
+        .match-winner {
+            color: #43e97b;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .match-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .match-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.85em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(0,212,255,0.3);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .groups-grid {
                 grid-template-columns: 1fr;
@@ -396,7 +510,7 @@
             }
 
             th {
-                font-size: 0.7em;
+                font-size: 0.65em;
                 padding: 10px 5px;
             }
 
@@ -414,20 +528,24 @@
                 height: 50px;
                 font-size: 1.2em;
             }
+
+            .admin-menu {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🏆 POKEMON TOURNAMENT 2025</h1>
-        <p>แตะที่กลุ่มเพื่อดูตารางคะแนนแบบเรียลไทม์</p>
+        <p>แตะที่กลุ่มเพื่อดูตารางคะแนนและการแข่งขัน</p>
     </div>
 
     <div class="groups-grid" id="groupsContainer"></div>
 
     <button class="admin-btn" onclick="openAdminModal()">⚙️</button>
 
-    <!-- Admin Modal -->
+    <!-- Admin Login Modal -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
             <div class="modal-header">🔐 Admin Panel</div>
@@ -440,35 +558,87 @@
         </div>
     </div>
 
-    <!-- Edit Score Modal -->
-    <div class="modal" id="editModal">
+    <!-- Admin Dashboard Modal -->
+    <div class="modal" id="adminDashboard">
         <div class="modal-content">
-            <div class="modal-header">✏️ แก้ไขคะแนน</div>
-            <div class="form-group">
-                <label>กลุ่ม</label>
-                <select id="editGroup"></select>
+            <div class="modal-header">⚙️ Admin Dashboard</div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('scores')">จัดการคะแนน</button>
+                <button class="tab" onclick="switchTab('matches')">จัดการแมทช์</button>
             </div>
-            <div class="form-group">
-                <label>ทีม</label>
-                <select id="editTeam"></select>
-            </div>
-            <div class="form-group">
-                <label>แมทช์</label>
-                <select id="editMatch">
-                    <option value="match1">Match 1</option>
-                    <option value="match2">Match 2</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>คะแนน</label>
-                <div class="score-controls">
-                    <button class="score-btn" onclick="changeScore(-1)">−</button>
-                    <div class="score-display" id="scoreDisplay">0</div>
-                    <button class="score-btn" onclick="changeScore(1)">+</button>
+
+            <!-- Scores Tab -->
+            <div class="tab-content active" id="scoresTab">
+                <div class="form-group">
+                    <label>กลุ่ม</label>
+                    <select id="editGroup" onchange="updateTeamSelect()"></select>
                 </div>
+                <div class="form-group">
+                    <label>ทีม</label>
+                    <select id="editTeam"></select>
+                </div>
+                <div class="form-group">
+                    <label>แมทช์</label>
+                    <select id="editMatch">
+                        <option value="match1">Match 1</option>
+                        <option value="match2">Match 2</option>
+                        <option value="match3">Match 3</option>
+                        <option value="match4">Match 4</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>คะแนน</label>
+                    <div class="score-controls">
+                        <button class="score-btn" onclick="changeScore(-10)">-10</button>
+                        <button class="score-btn" onclick="changeScore(-1)">−</button>
+                        <div class="score-display" id="scoreDisplay">0</div>
+                        <button class="score-btn" onclick="changeScore(1)">+</button>
+                        <button class="score-btn" onclick="changeScore(10)">+10</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveScore()">บันทึกคะแนน</button>
+                <button class="btn btn-danger" onclick="resetScore()">ลบคะแนนแมทช์นี้</button>
             </div>
-            <button class="btn btn-primary" onclick="saveScore()">บันทึก</button>
-            <button class="btn btn-close" onclick="closeModal('editModal')">ยกเลิก</button>
+
+            <!-- Matches Tab -->
+            <div class="tab-content" id="matchesTab">
+                <div class="form-group">
+                    <label>กลุ่ม</label>
+                    <select id="matchGroup" onchange="updateMatchList()"></select>
+                </div>
+                <div class="form-group">
+                    <label>แมทช์</label>
+                    <select id="matchNumber">
+                        <option value="match1">Match 1</option>
+                        <option value="match2">Match 2</option>
+                        <option value="match3">Match 3</option>
+                        <option value="match4">Match 4</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ทีม 1</label>
+                    <select id="team1Select"></select>
+                </div>
+                <div class="form-group">
+                    <label>ทีม 2</label>
+                    <select id="team2Select"></select>
+                </div>
+                <div class="form-group">
+                    <label>ผู้ชนะ (ถ้ามี)</label>
+                    <select id="winnerSelect">
+                        <option value="">ยังไม่มีผู้ชนะ</option>
+                        <option value="team1">ทีม 1</option>
+                        <option value="team2">ทีม 2</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveMatch()">บันทึกแมทช์</button>
+                <button class="btn btn-danger" onclick="deleteMatch()">ลบแมทช์</button>
+
+                <div class="match-list" id="matchListContainer"></div>
+            </div>
+
+            <button class="btn btn-close" onclick="closeModal('adminDashboard')">ปิด</button>
         </div>
     </div>
 
@@ -506,13 +676,46 @@
         };
 
         let teamsScores = {};
+        let matches = {};
 
-        // Initialize scores
+        // Initialize scores and matches
         Object.keys(groupsData).forEach(group => {
+            matches[group] = {
+                match1: { team1: null, team2: null, winner: null },
+                match2: { team1: null, team2: null, winner: null },
+                match3: { team1: null, team2: null, winner: null },
+                match4: { team1: null, team2: null, winner: null }
+            };
+
             groupsData[group].teams.forEach(team => {
-                teamsScores[team] = { match1: 0, match2: 0, total: 0 };
+                teamsScores[team] = { 
+                    match1: 0, 
+                    match2: 0, 
+                    match3: 0, 
+                    match4: 0, 
+                    total: 0 
+                };
             });
         });
+
+        // Load from localStorage
+        function loadData() {
+            const savedScores = localStorage.getItem('teamsScores');
+            const savedMatches = localStorage.getItem('matches');
+            
+            if (savedScores) {
+                teamsScores = JSON.parse(savedScores);
+            }
+            if (savedMatches) {
+                matches = JSON.parse(savedMatches);
+            }
+        }
+
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('teamsScores', JSON.stringify(teamsScores));
+            localStorage.setItem('matches', JSON.stringify(matches));
+        }
 
         function renderGroups() {
             const container = document.getElementById('groupsContainer');
@@ -528,6 +731,30 @@
                 groupCard.className = `group-card group-${groupKey.toLowerCase()}`;
                 groupCard.onclick = () => toggleGroup(groupCard);
 
+                // Build matches display
+                let matchesHTML = '';
+                Object.keys(matches[groupKey]).forEach(matchKey => {
+                    const match = matches[groupKey][matchKey];
+                    if (match.team1 && match.team2) {
+                        const matchNum = matchKey.replace('match', '');
+                        const winnerText = match.winner ? 
+                            (match.winner === 'team1' ? `🏆 ${match.team1}` : `🏆 ${match.team2}`) : 
+                            'ยังไม่แข่ง';
+                        
+                        matchesHTML += `
+                            <div class="match-item">
+                                <h4>Match ${matchNum}</h4>
+                                <div class="team-vs">
+                                    <span>${match.team1}</span>
+                                    <span class="vs-text">VS</span>
+                                    <span>${match.team2}</span>
+                                </div>
+                                <div class="match-winner">${winnerText}</div>
+                            </div>
+                        `;
+                    }
+                });
+
                 groupCard.innerHTML = `
                     <div class="group-header">
                         <span class="pokemon-icon">${group.icon}</span>
@@ -536,6 +763,7 @@
                         <div class="expand-icon">▼</div>
                     </div>
                     <div class="group-body">
+                        ${matchesHTML ? `<div style="margin-bottom: 20px;">${matchesHTML}</div>` : ''}
                         <table>
                             <thead>
                                 <tr>
@@ -543,6 +771,8 @@
                                     <th>ทีม</th>
                                     <th>M1</th>
                                     <th>M2</th>
+                                    <th>M3</th>
+                                    <th>M4</th>
                                     <th>คะแนน</th>
                                 </tr>
                             </thead>
@@ -553,6 +783,8 @@
                                         <td class="team-name-cell">${team}</td>
                                         <td class="match-cell">${teamsScores[team].match1}</td>
                                         <td class="match-cell">${teamsScores[team].match2}</td>
+                                        <td class="match-cell">${teamsScores[team].match3}</td>
+                                        <td class="match-cell">${teamsScores[team].match4}</td>
                                         <td class="score-cell">${teamsScores[team].total}</td>
                                     </tr>
                                 `).join('')}
@@ -577,7 +809,7 @@
 
         function openAdminModal() {
             if (isAdmin) {
-                openEditModal();
+                openAdminDashboard();
             } else {
                 document.getElementById('adminModal').classList.add('active');
             }
@@ -588,22 +820,27 @@
             if (password === ADMIN_PASSWORD) {
                 isAdmin = true;
                 closeModal('adminModal');
-                openEditModal();
+                openAdminDashboard();
             } else {
                 alert('รหัสผ่านไม่ถูกต้อง!');
             }
         }
 
-        function openEditModal() {
-            const groupSelect = document.getElementById('editGroup');
-            groupSelect.innerHTML = Object.keys(groupsData).map(key => 
-                `<option value="${key}">${groupsData[key].name}</option>`
-            ).join('');
-            
+        function openAdminDashboard() {
+            populateGroupSelects();
             updateTeamSelect();
-            currentScore = 0;
-            document.getElementById('scoreDisplay').textContent = currentScore;
-            document.getElementById('editModal').classList.add('active');
+            updateMatchList();
+            document.getElementById('adminDashboard').classList.add('active');
+        }
+
+        function populateGroupSelects() {
+            const selects = ['editGroup', 'matchGroup'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = Object.keys(groupsData).map(key => 
+                    `<option value="${key}">${groupsData[key].name}</option>`
+                ).join('');
+            });
         }
 
         function updateTeamSelect() {
@@ -612,9 +849,25 @@
             teamSelect.innerHTML = groupsData[groupKey].teams.map(team => 
                 `<option value="${team}">${team}</option>`
             ).join('');
+
+            // Update current score display
+            const selectedTeam = teamSelect.value;
+            const selectedMatch = document.getElementById('editMatch').value;
+            currentScore = teamsScores[selectedTeam][selectedMatch];
+            document.getElementById('scoreDisplay').textContent = currentScore;
         }
 
-        document.getElementById('editGroup')?.addEventListener('change', updateTeamSelect);
+        function updateMatchTeamSelects() {
+            const groupKey = document.getElementById('matchGroup').value;
+            const teams = groupsData[groupKey].teams;
+            
+            ['team1Select', 'team2Select'].forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = teams.map(team => 
+                    `<option value="${team}">${team}</option>`
+                ).join('');
+            });
+        }
 
         function changeScore(delta) {
             currentScore = Math.max(0, currentScore + delta);
@@ -626,16 +879,126 @@
             const match = document.getElementById('editMatch').value;
             
             teamsScores[team][match] = currentScore;
-            teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2;
+            teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2 + 
+                                        teamsScores[team].match3 + teamsScores[team].match4;
             
+            saveData();
             renderGroups();
-            closeModal('editModal');
             alert('บันทึกคะแนนสำเร็จ! ✅');
+        }
+
+        function resetScore() {
+            const team = document.getElementById('editTeam').value;
+            const match = document.getElementById('editMatch').value;
+            
+            if (confirm(`ต้องการลบคะแนน ${match} ของทีม ${team} ใช่หรือไม่?`)) {
+                teamsScores[team][match] = 0;
+                teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2 + 
+                                            teamsScores[team].match3 + teamsScores[team].match4;
+                currentScore = 0;
+                document.getElementById('scoreDisplay').textContent = currentScore;
+                
+                saveData();
+                renderGroups();
+                alert('ลบคะแนนสำเร็จ! ✅');
+            }
+        }
+
+        function saveMatch() {
+            const groupKey = document.getElementById('matchGroup').value;
+            const matchNum = document.getElementById('matchNumber').value;
+            const team1 = document.getElementById('team1Select').value;
+            const team2 = document.getElementById('team2Select').value;
+            const winner = document.getElementById('winnerSelect').value;
+
+            if (team1 === team2) {
+                alert('ไม่สามารถเลือกทีมเดียวกันได้!');
+                return;
+            }
+
+            matches[groupKey][matchNum] = {
+                team1: team1,
+                team2: team2,
+                winner: winner || null
+            };
+
+            saveData();
+            renderGroups();
+            updateMatchList();
+            alert('บันทึกแมทช์สำเร็จ! ✅');
+        }
+
+        function deleteMatch() {
+            const groupKey = document.getElementById('matchGroup').value;
+            const matchNum = document.getElementById('matchNumber').value;
+
+            if (confirm(`ต้องการลบ ${matchNum} ใช่หรือไม่?`)) {
+                matches[groupKey][matchNum] = {
+                    team1: null,
+                    team2: null,
+                    winner: null
+                };
+
+                saveData();
+                renderGroups();
+                updateMatchList();
+                alert('ลบแมทช์สำเร็จ! ✅');
+            }
+        }
+
+        function updateMatchList() {
+            const groupKey = document.getElementById('matchGroup').value;
+            updateMatchTeamSelects();
+            
+            const container = document.getElementById('matchListContainer');
+            let html = '<h3 style="color: #00d4ff; margin-top: 20px;">รายการแมทช์ทั้งหมด</h3>';
+
+            Object.keys(matches[groupKey]).forEach(matchKey => {
+                const match = matches[groupKey][matchKey];
+                if (match.team1 && match.team2) {
+                    const matchNum = matchKey.replace('match', '');
+                    const winnerText = match.winner ? 
+                        (match.winner === 'team1' ? `🏆 ${match.team1} ชนะ` : `🏆 ${match.team2} ชนะ`) : 
+                        'ยังไม่มีผู้ชนะ';
+                    
+                    html += `
+                        <div class="match-item">
+                            <h4>Match ${matchNum}</h4>
+                            <div class="team-vs">
+                                <span>${match.team1}</span>
+                                <span class="vs-text">VS</span>
+                                <span>${match.team2}</span>
+                            </div>
+                            <div class="match-winner">${winnerText}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tabName === 'scores') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('scoresTab').classList.add('active');
+            } else if (tabName === 'matches') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('matchesTab').classList.add('active');
+                updateMatchList();
+            }
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
+
+        // Update score display when team or match changes
+        document.getElementById('editTeam')?.addEventListener('change', updateTeamSelect);
+        document.getElementById('editMatch')?.addEventListener('change', updateTeamSelect);
 
         // Close modal when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
@@ -646,7 +1009,8 @@
             });
         });
 
-        // Initial render
+        // Initialize
+        loadData();
         renderGroups();
     </script>
 </body>
