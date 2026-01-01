@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon Tournament 2025</title>
+    <title>Pokemon Tournament 2025 - Real-time</title>
     <style>
         * {
             margin: 0;
@@ -45,6 +45,35 @@
         .header p {
             color: #a0aec0;
             font-size: 0.9em;
+        }
+
+        .sync-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 0.9em;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #43e97b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .admin-btn {
@@ -399,17 +428,6 @@
             text-align: center;
         }
 
-        .admin-menu {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .admin-menu .btn {
-            width: 100%;
-        }
-
         .match-list {
             max-height: 400px;
             overflow-y: auto;
@@ -456,18 +474,6 @@
             font-size: 0.9em;
         }
 
-        .match-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .match-actions button {
-            flex: 1;
-            padding: 8px;
-            font-size: 0.85em;
-        }
-
         .tabs {
             display: flex;
             gap: 10px;
@@ -499,6 +505,33 @@
             display: block;
         }
 
+        .setup-section {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+
+        .setup-section h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .setup-section p {
+            color: #a0aec0;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .setup-section code {
+            background: rgba(0,0,0,0.5);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #43e97b;
+            font-family: monospace;
+        }
+
         @media (max-width: 768px) {
             .groups-grid {
                 grid-template-columns: 1fr;
@@ -507,6 +540,11 @@
 
             .header h1 {
                 font-size: 1.5em;
+            }
+
+            .sync-status {
+                font-size: 0.75em;
+                padding: 8px 15px;
             }
 
             th {
@@ -528,17 +566,18 @@
                 height: 50px;
                 font-size: 1.2em;
             }
-
-            .admin-menu {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
+    <div class="sync-status">
+        <div class="sync-indicator"></div>
+        <span>Real-time Sync</span>
+    </div>
+
     <div class="header">
         <h1>🏆 POKEMON TOURNAMENT 2025</h1>
-        <p>แตะที่กลุ่มเพื่อดูตารางคะแนนและการแข่งขัน</p>
+        <p>แตะที่กลุ่มเพื่อดูตารางคะแนนและการแข่งขัน (อัพเดทเรียลไทม์)</p>
     </div>
 
     <div class="groups-grid" id="groupsContainer"></div>
@@ -555,6 +594,55 @@
             </div>
             <button class="btn btn-primary" onclick="verifyAdmin()">เข้าสู่ระบบ</button>
             <button class="btn btn-close" onclick="closeModal('adminModal')">ปิด</button>
+        </div>
+    </div>
+
+    <!-- Setup Modal -->
+    <div class="modal" id="setupModal">
+        <div class="modal-content">
+            <div class="modal-header">🔧 ตั้งค่า Firebase</div>
+            
+            <div class="setup-section">
+                <h3>📋 วิธีตั้งค่า Firebase Realtime Database</h3>
+                <p><strong>ขั้นตอนที่ 1:</strong> ไปที่ <a href="https://console.firebase.google.com" target="_blank" style="color: #00d4ff;">Firebase Console</a></p>
+                <p><strong>ขั้นตอนที่ 2:</strong> สร้างโปรเจคใหม่หรือเลือกโปรเจคที่มีอยู่</p>
+                <p><strong>ขั้นตอนที่ 3:</strong> ไปที่ Build → Realtime Database → Create Database</p>
+                <p><strong>ขั้นตอนที่ 4:</strong> เลือก <code>Start in test mode</code> (สำหรับทดสอบ)</p>
+                <p><strong>ขั้นตอนที่ 5:</strong> ไปที่ Project Settings → Your apps → เพิ่ม Web app</p>
+                <p><strong>ขั้นตอนที่ 6:</strong> คัดลอก Firebase Config และใส่ด้านล่าง</p>
+            </div>
+
+            <div class="form-group">
+                <label>Firebase API Key</label>
+                <input type="text" id="apiKey" placeholder="AIzaSy...">
+            </div>
+            <div class="form-group">
+                <label>Auth Domain</label>
+                <input type="text" id="authDomain" placeholder="your-project.firebaseapp.com">
+            </div>
+            <div class="form-group">
+                <label>Database URL</label>
+                <input type="text" id="databaseURL" placeholder="https://your-project.firebaseio.com">
+            </div>
+            <div class="form-group">
+                <label>Project ID</label>
+                <input type="text" id="projectId" placeholder="your-project">
+            </div>
+            <div class="form-group">
+                <label>Storage Bucket</label>
+                <input type="text" id="storageBucket" placeholder="your-project.appspot.com">
+            </div>
+            <div class="form-group">
+                <label>Messaging Sender ID</label>
+                <input type="text" id="messagingSenderId" placeholder="123456789">
+            </div>
+            <div class="form-group">
+                <label>App ID</label>
+                <input type="text" id="appId" placeholder="1:123456789:web:abc123">
+            </div>
+
+            <button class="btn btn-primary" onclick="saveFirebaseConfig()">บันทึกและเชื่อมต่อ</button>
+            <button class="btn btn-close" onclick="closeModal('setupModal')">ปิด</button>
         </div>
     </div>
 
@@ -642,10 +730,16 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <script>
         const ADMIN_PASSWORD = "pokemon2025";
         let isAdmin = false;
         let currentScore = 0;
+        let database = null;
+        let dataRef = null;
 
         const groupsData = {
             A: {
@@ -678,43 +772,99 @@
         let teamsScores = {};
         let matches = {};
 
-        // Initialize scores and matches
-        Object.keys(groupsData).forEach(group => {
-            matches[group] = {
-                match1: { team1: null, team2: null, winner: null },
-                match2: { team1: null, team2: null, winner: null },
-                match3: { team1: null, team2: null, winner: null },
-                match4: { team1: null, team2: null, winner: null }
-            };
-
-            groupsData[group].teams.forEach(team => {
-                teamsScores[team] = { 
-                    match1: 0, 
-                    match2: 0, 
-                    match3: 0, 
-                    match4: 0, 
-                    total: 0 
-                };
-            });
-        });
-
-        // Load from localStorage
-        function loadData() {
-            const savedScores = localStorage.getItem('teamsScores');
-            const savedMatches = localStorage.getItem('matches');
-            
-            if (savedScores) {
-                teamsScores = JSON.parse(savedScores);
+        // Initialize Firebase
+        function initializeFirebase() {
+            const config = localStorage.getItem('firebaseConfig');
+            if (!config) {
+                document.getElementById('setupModal').classList.add('active');
+                return false;
             }
-            if (savedMatches) {
-                matches = JSON.parse(savedMatches);
+
+            try {
+                const firebaseConfig = JSON.parse(config);
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                dataRef = database.ref('tournament');
+
+                // Listen for real-time updates
+                dataRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        if (data.scores) teamsScores = data.scores;
+                        if (data.matches) matches = data.matches;
+                        renderGroups();
+                    } else {
+                        initializeData();
+                    }
+                });
+
+                return true;
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Firebase กรุณาตรวจสอบการตั้งค่า');
+                document.getElementById('setupModal').classList.add('active');
+                return false;
             }
         }
 
-        // Save to localStorage
-        function saveData() {
-            localStorage.setItem('teamsScores', JSON.stringify(teamsScores));
-            localStorage.setItem('matches', JSON.stringify(matches));
+        function saveFirebaseConfig() {
+            const config = {
+                apiKey: document.getElementById('apiKey').value.trim(),
+                authDomain: document.getElementById('authDomain').value.trim(),
+                databaseURL: document.getElementById('databaseURL').value.trim(),
+                projectId: document.getElementById('projectId').value.trim(),
+                storageBucket: document.getElementById('storageBucket').value.trim(),
+                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+                appId: document.getElementById('appId').value.trim()
+            };
+
+            if (!config.apiKey || !config.databaseURL) {
+                alert('กรุณากรอก API Key และ Database URL อย่างน้อย');
+                return;
+            }
+
+            localStorage.setItem('firebaseConfig', JSON.stringify(config));
+            closeModal('setupModal');
+            alert('บันทึกการตั้งค่าสำเร็จ! กำลังรีโหลดหน้า...');
+            location.reload();
+        }
+
+        // Initialize data structure
+        function initializeData() {
+            Object.keys(groupsData).forEach(group => {
+                matches[group] = {
+                    match1: { team1: null, team2: null, winner: null },
+                    match2: { team1: null, team2: null, winner: null },
+                    match3: { team1: null, team2: null, winner: null },
+                    match4: { team1: null, team2: null, winner: null }
+                };
+
+                groupsData[group].teams.forEach(team => {
+                    teamsScores[team] = { 
+                        match1: 0, 
+                        match2: 0, 
+                        match3: 0, 
+                        match4: 0, 
+                        total: 0 
+                    };
+                });
+            });
+
+            saveToFirebase();
+        }
+
+        // Save data to Firebase
+        function saveToFirebase() {
+            if (dataRef) {
+                dataRef.set({
+                    scores: teamsScores,
+                    matches: matches,
+                    lastUpdated: Date.now()
+                }).catch(error => {
+                    console.error('Error saving to Firebase:', error);
+                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                });
+            }
         }
 
         function renderGroups() {
@@ -731,29 +881,30 @@
                 groupCard.className = `group-card group-${groupKey.toLowerCase()}`;
                 groupCard.onclick = () => toggleGroup(groupCard);
 
-                // Build matches display
                 let matchesHTML = '';
-                Object.keys(matches[groupKey]).forEach(matchKey => {
-                    const match = matches[groupKey][matchKey];
-                    if (match.team1 && match.team2) {
-                        const matchNum = matchKey.replace('match', '');
-                        const winnerText = match.winner ? 
-                            (match.winner === 'team1' ? `🏆 ${match.team1}` : `🏆 ${match.team2}`) : 
-                            'ยังไม่แข่ง';
-                        
-                        matchesHTML += `
-                            <div class="match-item">
-                                <h4>Match ${matchNum}</h4>
-                                <div class="team-vs">
-                                    <span>${match.team1}</span>
-                                    <span class="vs-text">VS</span>
-                                    <span>${match.team2}</span>
+                if (matches[groupKey]) {
+                    Object.keys(matches[groupKey]).forEach(matchKey => {
+                        const match = matches[groupKey][matchKey];
+                        if (match.team1 && match.team2) {
+                            const matchNum = matchKey.replace('match', '');
+                            const winnerText = match.winner ? 
+                                (match.winner === 'team1' ? `🏆 ${match.team1}` : `🏆 ${match.team2}`) : 
+                                'ยังไม่แข่ง';
+                            
+                            matchesHTML += `
+                                <div class="match-item">
+                                    <h4>Match ${matchNum}</h4>
+                                    <div class="team-vs">
+                                        <span>${match.team1}</span>
+                                        <span class="vs-text">VS</span>
+                                        <span>${match.team2}</span>
+                                    </div>
+                                    <div class="match-winner">${winnerText}</div>
                                 </div>
-                                <div class="match-winner">${winnerText}</div>
-                            </div>
-                        `;
-                    }
-                });
+                            `;
+                        }
+                    });
+                }
 
                 groupCard.innerHTML = `
                     <div class="group-header">
@@ -850,7 +1001,6 @@
                 `<option value="${team}">${team}</option>`
             ).join('');
 
-            // Update current score display
             const selectedTeam = teamSelect.value;
             const selectedMatch = document.getElementById('editMatch').value;
             currentScore = teamsScores[selectedTeam][selectedMatch];
@@ -882,8 +1032,7 @@
             teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2 + 
                                         teamsScores[team].match3 + teamsScores[team].match4;
             
-            saveData();
-            renderGroups();
+            saveToFirebase();
             alert('บันทึกคะแนนสำเร็จ! ✅');
         }
 
@@ -898,8 +1047,7 @@
                 currentScore = 0;
                 document.getElementById('scoreDisplay').textContent = currentScore;
                 
-                saveData();
-                renderGroups();
+                saveToFirebase();
                 alert('ลบคะแนนสำเร็จ! ✅');
             }
         }
@@ -922,8 +1070,7 @@
                 winner: winner || null
             };
 
-            saveData();
-            renderGroups();
+            saveToFirebase();
             updateMatchList();
             alert('บันทึกแมทช์สำเร็จ! ✅');
         }
@@ -939,8 +1086,7 @@
                     winner: null
                 };
 
-                saveData();
-                renderGroups();
+                saveToFirebase();
                 updateMatchList();
                 alert('ลบแมทช์สำเร็จ! ✅');
             }
@@ -953,27 +1099,29 @@
             const container = document.getElementById('matchListContainer');
             let html = '<h3 style="color: #00d4ff; margin-top: 20px;">รายการแมทช์ทั้งหมด</h3>';
 
-            Object.keys(matches[groupKey]).forEach(matchKey => {
-                const match = matches[groupKey][matchKey];
-                if (match.team1 && match.team2) {
-                    const matchNum = matchKey.replace('match', '');
-                    const winnerText = match.winner ? 
-                        (match.winner === 'team1' ? `🏆 ${match.team1} ชนะ` : `🏆 ${match.team2} ชนะ`) : 
-                        'ยังไม่มีผู้ชนะ';
-                    
-                    html += `
-                        <div class="match-item">
-                            <h4>Match ${matchNum}</h4>
-                            <div class="team-vs">
-                                <span>${match.team1}</span>
-                                <span class="vs-text">VS</span>
-                                <span>${match.team2}</span>
+            if (matches[groupKey]) {
+                Object.keys(matches[groupKey]).forEach(matchKey => {
+                    const match = matches[groupKey][matchKey];
+                    if (match.team1 && match.team2) {
+                        const matchNum = matchKey.replace('match', '');
+                        const winnerText = match.winner ? 
+                            (match.winner === 'team1' ? `🏆 ${match.team1} ชนะ` : `🏆 ${match.team2} ชนะ`) : 
+                            'ยังไม่มีผู้ชนะ';
+                        
+                        html += `
+                            <div class="match-item">
+                                <h4>Match ${matchNum}</h4>
+                                <div class="team-vs">
+                                    <span>${match.team1}</span>
+                                    <span class="vs-text">VS</span>
+                                    <span>${match.team2}</span>
+                                </div>
+                                <div class="match-winner">${winnerText}</div>
                             </div>
-                            <div class="match-winner">${winnerText}</div>
-                        </div>
-                    `;
-                }
-            });
+                        `;
+                    }
+                });
+            }
 
             container.innerHTML = html;
         }
@@ -996,11 +1144,9 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // Update score display when team or match changes
         document.getElementById('editTeam')?.addEventListener('change', updateTeamSelect);
         document.getElementById('editMatch')?.addEventListener('change', updateTeamSelect);
 
-        // Close modal when clicking outside
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -1009,9 +1155,14 @@
             });
         });
 
-        // Initialize
-        loadData();
-        renderGroups();
+        // Initialize on load
+        window.addEventListener('load', () => {
+            if (!initializeFirebase()) {
+                // If Firebase not configured, use local data
+                initializeData();
+                renderGroups();
+            }
+        });
     </script>
 </body>
 </html>
