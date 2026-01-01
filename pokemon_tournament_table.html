@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Tournament 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(15,32,39,0.95) 0%, rgba(32,58,67,0.95) 100%);
+            backdrop-filter: blur(10px);
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid #00d4ff;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-shadow: 0 0 30px rgba(0,212,255,0.5);
+        }
+
+        .header p {
+            color: #a0aec0;
+            font-size: 0.9em;
+        }
+
+        .admin-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 35px rgba(102,126,234,0.6);
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .group-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .group-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .group-header {
+            padding: 25px 20px;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .group-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+        }
+
+        .group-a .group-header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .group-b .group-header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .group-c .group-header { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .group-d .group-header { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .group-e .group-header { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+
+        .pokemon-icon {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .group-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .team-count {
+            margin-top: 8px;
+            font-size: 0.9em;
+            opacity: 0.95;
+        }
+
+        .expand-icon {
+            font-size: 1.5em;
+            margin-top: 10px;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+        }
+
+        .group-card.active .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .group-body {
+            padding: 20px;
+            display: none;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .group-card.active .group-body {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: rgba(0,0,0,0.3);
+        }
+
+        th {
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #00d4ff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #e2e8f0;
+            font-size: 0.9em;
+        }
+
+        .rank-cell {
+            font-weight: 700;
+            font-size: 1.2em;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0,212,255,0.5);
+        }
+
+        .rank-1 { color: #FFD700; text-shadow: 0 0 15px rgba(255,215,0,0.8); }
+        .rank-2 { color: #C0C0C0; text-shadow: 0 0 15px rgba(192,192,192,0.8); }
+        .rank-3 { color: #CD7F32; text-shadow: 0 0 15px rgba(205,127,50,0.8); }
+
+        .team-name-cell {
+            text-align: left;
+            font-weight: 600;
+            color: #fff;
+            padding-left: 15px;
+        }
+
+        .score-cell {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #7b2ff7;
+            text-shadow: 0 0 10px rgba(123,47,247,0.5);
+        }
+
+        .match-cell {
+            font-size: 0.75em;
+            color: #a0aec0;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 2px solid rgba(0,212,255,0.3);
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            color: #00d4ff;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #a0aec0;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(0,212,255,0.3);
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0,212,255,0.3);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+        }
+
+        .btn-close {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .score-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .score-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .score-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00d4ff;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .groups-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            th {
+                font-size: 0.7em;
+                padding: 10px 5px;
+            }
+
+            td {
+                font-size: 0.8em;
+                padding: 12px 5px;
+            }
+
+            .team-name-cell {
+                padding-left: 10px;
+            }
+
+            .admin-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏆 POKEMON TOURNAMENT 2025</h1>
+        <p>แตะที่กลุ่มเพื่อดูตารางคะแนนแบบเรียลไทม์</p>
+    </div>
+
+    <div class="groups-grid" id="groupsContainer"></div>
+
+    <button class="admin-btn" onclick="openAdminModal()">⚙️</button>
+
+    <!-- Admin Modal -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <div class="modal-header">🔐 Admin Panel</div>
+            <div class="form-group">
+                <label>รหัสผ่าน Admin</label>
+                <input type="password" id="adminPassword" placeholder="ใส่รหัสผ่าน">
+            </div>
+            <button class="btn btn-primary" onclick="verifyAdmin()">เข้าสู่ระบบ</button>
+            <button class="btn btn-close" onclick="closeModal('adminModal')">ปิด</button>
+        </div>
+    </div>
+
+    <!-- Edit Score Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">✏️ แก้ไขคะแนน</div>
+            <div class="form-group">
+                <label>กลุ่ม</label>
+                <select id="editGroup"></select>
+            </div>
+            <div class="form-group">
+                <label>ทีม</label>
+                <select id="editTeam"></select>
+            </div>
+            <div class="form-group">
+                <label>แมทช์</label>
+                <select id="editMatch">
+                    <option value="match1">Match 1</option>
+                    <option value="match2">Match 2</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>คะแนน</label>
+                <div class="score-controls">
+                    <button class="score-btn" onclick="changeScore(-1)">−</button>
+                    <div class="score-display" id="scoreDisplay">0</div>
+                    <button class="score-btn" onclick="changeScore(1)">+</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveScore()">บันทึก</button>
+            <button class="btn btn-close" onclick="closeModal('editModal')">ยกเลิก</button>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "pokemon2025";
+        let isAdmin = false;
+        let currentScore = 0;
+
+        const groupsData = {
+            A: {
+                name: "GROUP A",
+                icon: "⚡",
+                teams: ["SatoshiNo1", "ZOCOCO4473", "CamelPopcorn", "Ayanokoji530", "BasZERO9xD"]
+            },
+            B: {
+                name: "GROUP B",
+                icon: "🔥",
+                teams: ["PoomX14", "FlyingPine", "ArrantSeal", "ShieldherοEXE", "Mr_Milk425"]
+            },
+            C: {
+                name: "GROUP C",
+                icon: "🌿",
+                teams: ["Erentheaom", "JasperPaoXD", "color7892", "Mashiro4997", "UtterFall4323"]
+            },
+            D: {
+                name: "GROUP D",
+                icon: "🔴",
+                teams: ["TonwanO", "NOOMGAMER", "BeamInwza77", "GiTInwza007", "chanyanin"]
+            },
+            E: {
+                name: "GROUP E",
+                icon: "💧",
+                teams: ["Kxqny001", "PEE1579X2", "Inwsoap007", "flowsavagez", "BOOM1112982"]
+            }
+        };
+
+        let teamsScores = {};
+
+        // Initialize scores
+        Object.keys(groupsData).forEach(group => {
+            groupsData[group].teams.forEach(team => {
+                teamsScores[team] = { match1: 0, match2: 0, total: 0 };
+            });
+        });
+
+        function renderGroups() {
+            const container = document.getElementById('groupsContainer');
+            container.innerHTML = '';
+
+            Object.keys(groupsData).forEach(groupKey => {
+                const group = groupsData[groupKey];
+                const sortedTeams = [...group.teams].sort((a, b) => {
+                    return teamsScores[b].total - teamsScores[a].total;
+                });
+
+                const groupCard = document.createElement('div');
+                groupCard.className = `group-card group-${groupKey.toLowerCase()}`;
+                groupCard.onclick = () => toggleGroup(groupCard);
+
+                groupCard.innerHTML = `
+                    <div class="group-header">
+                        <span class="pokemon-icon">${group.icon}</span>
+                        <div class="group-title">${group.name}</div>
+                        <div class="team-count">${group.teams.length} Teams</div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="group-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>อันดับ</th>
+                                    <th>ทีม</th>
+                                    <th>M1</th>
+                                    <th>M2</th>
+                                    <th>คะแนน</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedTeams.map((team, index) => `
+                                    <tr>
+                                        <td class="rank-cell rank-${index + 1}">${index + 1}</td>
+                                        <td class="team-name-cell">${team}</td>
+                                        <td class="match-cell">${teamsScores[team].match1}</td>
+                                        <td class="match-cell">${teamsScores[team].match2}</td>
+                                        <td class="score-cell">${teamsScores[team].total}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                container.appendChild(groupCard);
+            });
+        }
+
+        function toggleGroup(element) {
+            const isActive = element.classList.contains('active');
+            document.querySelectorAll('.group-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            if (!isActive) {
+                element.classList.add('active');
+            }
+        }
+
+        function openAdminModal() {
+            if (isAdmin) {
+                openEditModal();
+            } else {
+                document.getElementById('adminModal').classList.add('active');
+            }
+        }
+
+        function verifyAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                closeModal('adminModal');
+                openEditModal();
+            } else {
+                alert('รหัสผ่านไม่ถูกต้อง!');
+            }
+        }
+
+        function openEditModal() {
+            const groupSelect = document.getElementById('editGroup');
+            groupSelect.innerHTML = Object.keys(groupsData).map(key => 
+                `<option value="${key}">${groupsData[key].name}</option>`
+            ).join('');
+            
+            updateTeamSelect();
+            currentScore = 0;
+            document.getElementById('scoreDisplay').textContent = currentScore;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function updateTeamSelect() {
+            const groupKey = document.getElementById('editGroup').value;
+            const teamSelect = document.getElementById('editTeam');
+            teamSelect.innerHTML = groupsData[groupKey].teams.map(team => 
+                `<option value="${team}">${team}</option>`
+            ).join('');
+        }
+
+        document.getElementById('editGroup')?.addEventListener('change', updateTeamSelect);
+
+        function changeScore(delta) {
+            currentScore = Math.max(0, currentScore + delta);
+            document.getElementById('scoreDisplay').textContent = currentScore;
+        }
+
+        function saveScore() {
+            const team = document.getElementById('editTeam').value;
+            const match = document.getElementById('editMatch').value;
+            
+            teamsScores[team][match] = currentScore;
+            teamsScores[team].total = teamsScores[team].match1 + teamsScores[team].match2;
+            
+            renderGroups();
+            closeModal('editModal');
+            alert('บันทึกคะแนนสำเร็จ! ✅');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Initial render
+        renderGroups();
+    </script>
+</body>
+</html>
