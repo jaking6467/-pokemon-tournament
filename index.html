@@ -3,64 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon Tournament 2025 - Real-time</title>
+    <title>PokéTourney 2025 - Real-time Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deep-navy': '#0a1020',
+                        'neon-yellow': '#ffd700',
+                        'neon-cyan': '#00d2ff',
+                        'panel-bg': 'rgba(23, 33, 56, 0.8)',
+                        'panel-border': 'rgba(255, 255, 255, 0.1)',
+                        'win-green': '#22c55e',
+                        'loss-red': '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            min-height: 100vh;
-            padding: 0;
-            overflow-x: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, rgba(15,32,39,0.95) 0%, rgba(32,58,67,0.95) 100%);
-            backdrop-filter: blur(10px);
-            padding: 25px 20px;
-            text-align: center;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 3px solid #00d4ff;
-        }
-
-        .header h1 {
-            font-size: 2em;
-            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-            font-weight: 700;
-            text-shadow: 0 0 30px rgba(0,212,255,0.5);
-        }
-
-        .header p {
-            color: #a0aec0;
-            font-size: 0.9em;
-        }
-
-        .sync-status {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            border-radius: 20px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
+            background-color: #0a1020;
+            background: radial-gradient(circle at 50% 0%, #1a253a 0%, #0a1020 100%);
             color: white;
-            font-size: 0.9em;
-            z-index: 1000;
-            display: flex;
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a1020;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        .glass-panel {
+            background: rgba(23, 33, 56, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .neon-text-glow {
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .match-pill {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .glow-box {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            border: 1px solid #ffd700;
         }
 
         .sync-indicator {
@@ -80,119 +96,14 @@
             50% { opacity: 0.5; }
         }
 
-        .admin-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .admin-btn:hover {
-            transform: scale(1.1) rotate(90deg);
-            box-shadow: 0 12px 35px rgba(102,126,234,0.6);
-        }
-
-        .groups-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 25px;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
         .group-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .group-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 45px rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.3);
-        }
-
-        .group-header {
-            padding: 25px 20px;
-            color: white;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .group-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
-        }
-
-        .group-a .group-header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .group-b .group-header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .group-c .group-header { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .group-d .group-header { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .group-e .group-header { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
-
-        .pokemon-icon {
-            font-size: 3em;
-            display: block;
-            margin-bottom: 10px;
-            animation: bounce 2s infinite;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .group-title {
-            font-size: 1.6em;
-            font-weight: 700;
-            letter-spacing: 3px;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-        }
-
-        .team-count {
-            margin-top: 8px;
-            font-size: 0.9em;
-            opacity: 0.95;
-        }
-
-        .expand-icon {
-            font-size: 1.5em;
-            margin-top: 10px;
-            transition: transform 0.3s ease;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
-        }
-
-        .group-card.active .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        .group-body {
-            padding: 20px;
-            display: none;
-            background: rgba(0,0,0,0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 45px rgba(0, 212, 255, 0.3);
         }
 
         .group-card.active .group-body {
@@ -211,68 +122,43 @@
             }
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255,255,255,0.03);
+        .bracket-line {
+            background: #00d2ff;
+            box-shadow: 0 0 5px #00d2ff;
+        }
+
+        .knockout-bracket {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 40px;
+            min-height: 400px;
+        }
+
+        .bracket-round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .bracket-match {
+            background: rgba(23, 33, 56, 0.9);
+            border: 1px solid rgba(0, 210, 255, 0.3);
             border-radius: 10px;
-            overflow: hidden;
+            padding: 15px;
+            min-width: 200px;
+            transition: all 0.3s ease;
         }
 
-        thead {
-            background: rgba(0,0,0,0.3);
+        .bracket-match:hover {
+            border-color: #00d2ff;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
         }
 
-        th {
-            padding: 12px 8px;
-            text-align: center;
-            font-size: 0.75em;
-            color: #00d4ff;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        td {
-            padding: 15px 8px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            color: #e2e8f0;
-            font-size: 0.9em;
-        }
-
-        .rank-cell {
-            font-weight: 700;
-            font-size: 1.2em;
-            color: #00d4ff;
-            text-shadow: 0 0 10px rgba(0,212,255,0.5);
-        }
-
-        .rank-1 { color: #FFD700; text-shadow: 0 0 15px rgba(255,215,0,0.8); }
-        .rank-2 { color: #C0C0C0; text-shadow: 0 0 15px rgba(192,192,192,0.8); }
-        .rank-3 { color: #CD7F32; text-shadow: 0 0 15px rgba(205,127,50,0.8); }
-
-        .team-name-cell {
-            text-align: left;
-            font-weight: 600;
-            color: #fff;
-            padding-left: 15px;
-        }
-
-        .score-cell {
-            font-weight: 700;
-            font-size: 1.1em;
-            color: #7b2ff7;
-            text-shadow: 0 0 10px rgba(123,47,247,0.5);
-        }
-
-        .match-cell {
-            font-size: 0.75em;
-            color: #a0aec0;
-        }
-
-        tr:hover {
-            background: rgba(255,255,255,0.05);
+        .bracket-match.winner {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: #22c55e;
         }
 
         .modal {
@@ -282,7 +168,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(5px);
             z-index: 2000;
             align-items: center;
@@ -298,14 +184,13 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             padding: 30px;
             border-radius: 20px;
-            max-width: 600px;
+            max-width: 700px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            border: 2px solid rgba(0,212,255,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 212, 255, 0.3);
             animation: modalSlide 0.3s ease-out;
-            margin: 20px 0;
         }
 
         @keyframes modalSlide {
@@ -319,172 +204,6 @@
             }
         }
 
-        .modal-header {
-            font-size: 1.5em;
-            color: #00d4ff;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 700;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            color: #a0aec0;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid rgba(0,212,255,0.3);
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            color: white;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #00d4ff;
-            box-shadow: 0 0 15px rgba(0,212,255,0.3);
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1em;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
-        }
-
-        .btn-close {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .btn-close:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-            color: white;
-            margin-top: 10px;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245,87,108,0.4);
-        }
-
-        .score-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .score-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .score-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-        }
-
-        .score-display {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #00d4ff;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .match-list {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .match-item {
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(0,212,255,0.2);
-        }
-
-        .match-item h4 {
-            color: #00d4ff;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-
-        .match-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .team-vs {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #e2e8f0;
-            font-size: 0.9em;
-        }
-
-        .vs-text {
-            color: #7b2ff7;
-            font-weight: bold;
-        }
-
-        .match-winner {
-            color: #43e97b;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid rgba(0,212,255,0.3);
-        }
-
         .tab {
             padding: 10px 20px;
             background: transparent;
@@ -493,12 +212,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
             border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
         }
 
         .tab.active {
-            color: #00d4ff;
-            border-bottom-color: #00d4ff;
+            color: #00d2ff;
+            border-bottom-color: #00d2ff;
         }
 
         .tab-content {
@@ -510,151 +228,272 @@
         }
 
         @media (max-width: 768px) {
-            .groups-grid {
-                grid-template-columns: 1fr;
-                padding: 15px;
-            }
-
-            .header h1 {
-                font-size: 1.5em;
-            }
-
-            .sync-status {
-                font-size: 0.75em;
-                padding: 8px 15px;
-            }
-
-            th {
-                font-size: 0.65em;
-                padding: 10px 5px;
-            }
-
-            td {
-                font-size: 0.8em;
-                padding: 12px 5px;
-            }
-
-            .team-name-cell {
-                padding-left: 10px;
-            }
-
-            .admin-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2em;
+            .knockout-bracket {
+                flex-direction: column;
+                gap: 20px;
             }
         }
     </style>
 </head>
-<body>
-    <div class="sync-status" id="syncStatus">
+<body class="flex flex-col min-h-screen">
+    <!-- Sync Status -->
+    <div class="fixed top-4 left-4 px-4 py-2 rounded-full glass-panel flex items-center gap-3 z-50">
         <div class="sync-indicator" id="syncIndicator"></div>
-        <span id="syncText">กำลังเชื่อมต่อ...</span>
+        <span class="text-sm" id="syncText">กำลังเชื่อมต่อ...</span>
     </div>
 
-    <div class="header">
-        <h1>🏆 POKEMON TOURNAMENT 2025</h1>
-        <p>แตะที่กลุ่มเพื่อดูตารางคะแนนและการแข่งขัน (อัพเดทเรียลไทม์)</p>
-    </div>
+    <!-- Header -->
+    <header class="w-full bg-deep-navy border-b-2 border-neon-yellow px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <img alt="Pikachu Logo" class="h-10 w-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwPxT42JJhd4hdoMcyzJ_ykl7d6EtIwp5Jn8h6PxXMO1Dodj0Uc0KwjAi0MB_aLP07tbqC9G534sIMXtk09NXSXopSa3974LWWuSxi2WL4qm-K8JcBNWIsHdwLBxb28Cdv6tGO9Uzq0zmu6ZYikSsRPs3FRQMNzlQo2bA4mVb9wej7LdDBpd31m9oBsEZuYu7gyHOtsAnc58QVbezR72WM3NmvnNf7SvibkPkyKS1fFNpTOVQI1KxYvj8ygk5dU8ByxR9EpDRIWJDD2"/>
+            <h1 class="text-2xl font-bold text-white tracking-wide">PokéTourney <span class="text-gray-300">2025</span></h1>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <button onclick="switchView('groups')" id="btnGroups" class="hidden md:block px-4 py-2 rounded-lg bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 transition-all">
+                <i class="fas fa-users mr-2"></i>กลุ่ม
+            </button>
+            <button onclick="switchView('knockout')" id="btnKnockout" class="hidden md:block px-4 py-2 rounded-lg bg-slate-700 text-gray-300 hover:bg-slate-600 transition-all">
+                <i class="fas fa-trophy mr-2"></i>รอบน็อคเอาท์
+            </button>
+        </div>
+    </header>
 
-    <div class="groups-grid" id="groupsContainer"></div>
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
+        <!-- Groups View -->
+        <div id="groupsView" class="view-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" id="groupsContainer"></div>
+        </div>
 
-    <button class="admin-btn" onclick="openAdminModal()">⚙️</button>
+        <!-- Knockout View -->
+        <div id="knockoutView" class="view-content" style="display: none;">
+            <div class="glass-panel rounded-[15px] p-6">
+                <h2 class="text-2xl font-bold mb-6 text-center neon-text-glow">
+                    <i class="fas fa-trophy text-neon-yellow mr-2"></i>
+                    รอบตัดเชือก (Knockout Stage)
+                </h2>
+                <div id="knockoutBracket" class="knockout-bracket overflow-x-auto pb-4">
+                    <!-- Bracket will be generated here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin Button -->
+    <button onclick="openAdminModal()" class="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-2xl shadow-lg hover:scale-110 transition-all z-50">
+        <i class="fas fa-cog"></i>
+    </button>
+
+    <!-- Footer -->
+    <footer class="bg-deep-navy border-t border-panel-border mt-auto">
+        <div class="max-w-[1600px] mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2 opacity-50">
+                <i class="fas fa-copyright text-xs"></i>
+                <span class="text-sm">2025 PokéTourney</span>
+            </div>
+            <nav>
+                <ul class="flex gap-6 text-sm font-medium text-neon-yellow">
+                    <li><a class="hover:text-white transition-colors" href="#">Rules</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Schedule</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">About</a></li>
+                </ul>
+            </nav>
+            <div class="flex gap-4 text-neon-yellow text-xl">
+                <a class="hover:text-white transition-transform hover:-translate-y-1" href="#"><i class="fab fa-twitter"></i></a>
+                <a class="hover:text-white transition-transform hover:-translate-y-1" href="#"><i class="fab fa-discord"></i></a>
+                <a class="hover:text-white transition-transform hover:-translate-y-1" href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
 
     <!-- Admin Login Modal -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
-            <div class="modal-header">🔐 Admin Panel</div>
-            <div class="form-group">
-                <label>รหัสผ่าน Admin</label>
-                <input type="password" id="adminPassword" placeholder="ใส่รหัสผ่าน">
+            <div class="text-2xl font-bold mb-6 text-center text-neon-cyan">
+                <i class="fas fa-lock mr-2"></i>Admin Panel
             </div>
-            <button class="btn btn-primary" onclick="verifyAdmin()">เข้าสู่ระบบ</button>
-            <button class="btn btn-close" onclick="closeModal('adminModal')">ปิด</button>
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">รหัสผ่าน</label>
+                <input type="password" id="adminPassword" placeholder="ใส่รหัสผ่าน" 
+                    class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+            </div>
+            <button onclick="verifyAdmin()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-bold hover:shadow-lg transition-all">
+                เข้าสู่ระบบ
+            </button>
+            <button onclick="closeModal('adminModal')" class="w-full mt-3 py-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-all">
+                ปิด
+            </button>
         </div>
     </div>
 
     <!-- Admin Dashboard Modal -->
     <div class="modal" id="adminDashboard">
-        <div class="modal-content">
-            <div class="modal-header">⚙️ Admin Dashboard</div>
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="text-2xl font-bold mb-6 text-center text-neon-cyan">
+                <i class="fas fa-cog mr-2"></i>Admin Dashboard
+            </div>
             
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('scores')">จัดการคะแนน</button>
-                <button class="tab" onclick="switchTab('matches')">จัดการแมทช์</button>
+            <div class="flex gap-2 mb-6 border-b border-slate-600">
+                <button class="tab active" onclick="switchAdminTab('scores')">
+                    <i class="fas fa-chart-line mr-2"></i>จัดการคะแนน
+                </button>
+                <button class="tab" onclick="switchAdminTab('matches')">
+                    <i class="fas fa-calendar-alt mr-2"></i>จัดการแมทช์กลุ่ม
+                </button>
+                <button class="tab" onclick="switchAdminTab('knockout')">
+                    <i class="fas fa-trophy mr-2"></i>รอบน็อคเอาท์
+                </button>
             </div>
 
             <!-- Scores Tab -->
             <div class="tab-content active" id="scoresTab">
-                <div class="form-group">
-                    <label>กลุ่ม</label>
-                    <select id="editGroup" onchange="updateTeamSelect()"></select>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-300 mb-2 text-sm">กลุ่ม</label>
+                        <select id="editGroup" onchange="updateTeamSelect()" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2 text-sm">ทีม</label>
+                        <select id="editTeam" onchange="updateScoreDisplay()" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>ทีม</label>
-                    <select id="editTeam"></select>
-                </div>
-                <div class="form-group">
-                    <label>แมทช์</label>
-                    <select id="editMatch">
+                <div class="mb-4">
+                    <label class="block text-gray-300 mb-2 text-sm">แมทช์</label>
+                    <select id="editMatch" onchange="updateScoreDisplay()" 
+                        class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
                         <option value="match1">Match 1</option>
                         <option value="match2">Match 2</option>
                         <option value="match3">Match 3</option>
                         <option value="match4">Match 4</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>คะแนน</label>
-                    <div class="score-controls">
-                        <button class="score-btn" onclick="changeScore(-10)">-10</button>
-                        <button class="score-btn" onclick="changeScore(-1)">−</button>
-                        <div class="score-display" id="scoreDisplay">0</div>
-                        <button class="score-btn" onclick="changeScore(1)">+</button>
-                        <button class="score-btn" onclick="changeScore(10)">+10</button>
+                <div class="mb-6">
+                    <label class="block text-gray-300 mb-2 text-sm">คะแนน</label>
+                    <div class="flex items-center justify-center gap-4">
+                        <button onclick="changeScore(-10)" class="w-12 h-12 rounded-full bg-gradient-to-r from-red-600 to-pink-600 font-bold hover:scale-110 transition-all">-10</button>
+                        <button onclick="changeScore(-1)" class="w-12 h-12 rounded-full bg-gradient-to-r from-red-500 to-pink-500 font-bold hover:scale-110 transition-all">−</button>
+                        <div class="text-3xl font-bold text-neon-cyan min-w-[80px] text-center" id="scoreDisplay">0</div>
+                        <button onclick="changeScore(1)" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 font-bold hover:scale-110 transition-all">+</button>
+                        <button onclick="changeScore(10)" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 font-bold hover:scale-110 transition-all">+10</button>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="saveScore()">บันทึกคะแนน</button>
-                <button class="btn btn-danger" onclick="resetScore()">ลบคะแนนแมทช์นี้</button>
+                <button onclick="saveScore()" class="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg font-bold hover:shadow-lg transition-all mb-2">
+                    <i class="fas fa-save mr-2"></i>บันทึกคะแนน
+                </button>
+                <button onclick="resetScore()" class="w-full py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-bold hover:shadow-lg transition-all">
+                    <i class="fas fa-trash mr-2"></i>ลบคะแนนแมทช์นี้
+                </button>
             </div>
 
             <!-- Matches Tab -->
             <div class="tab-content" id="matchesTab">
-                <div class="form-group">
-                    <label>กลุ่ม</label>
-                    <select id="matchGroup" onchange="updateMatchList()"></select>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-300 mb-2 text-sm">กลุ่ม</label>
+                        <select id="matchGroup" onchange="updateMatchTeamSelects(); updateMatchList();" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2 text-sm">แมทช์</label>
+                        <select id="matchNumber" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                            <option value="match1">Match 1</option>
+                            <option value="match2">Match 2</option>
+                            <option value="match3">Match 3</option>
+                            <option value="match4">Match 4</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>แมทช์</label>
-                    <select id="matchNumber">
-                        <option value="match1">Match 1</option>
-                        <option value="match2">Match 2</option>
-                        <option value="match3">Match 3</option>
-                        <option value="match4">Match 4</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-300 mb-2 text-sm">ทีม 1</label>
+                        <select id="team1Select" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2 text-sm">ทีม 2</label>
+                        <select id="team2Select" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>ทีม 1</label>
-                    <select id="team1Select"></select>
-                </div>
-                <div class="form-group">
-                    <label>ทีม 2</label>
-                    <select id="team2Select"></select>
-                </div>
-                <div class="form-group">
-                    <label>ผู้ชนะ (ถ้ามี)</label>
-                    <select id="winnerSelect">
+                <div class="mb-4">
+                    <label class="block text-gray-300 mb-2 text-sm">ผู้ชนะ</label>
+                    <select id="winnerSelect" 
+                        class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
                         <option value="">ยังไม่มีผู้ชนะ</option>
                         <option value="team1">ทีม 1</option>
                         <option value="team2">ทีม 2</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" onclick="saveMatch()">บันทึกแมทช์</button>
-                <button class="btn btn-danger" onclick="deleteMatch()">ลบแมทช์</button>
-
-                <div class="match-list" id="matchListContainer"></div>
+                <button onclick="saveMatch()" class="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg font-bold hover:shadow-lg transition-all mb-2">
+                    <i class="fas fa-save mr-2"></i>บันทึกแมทช์
+                </button>
+                <button onclick="deleteMatch()" class="w-full py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg font-bold hover:shadow-lg transition-all mb-4">
+                    <i class="fas fa-trash mr-2"></i>ลบแมทช์
+                </button>
+                <div class="max-h-64 overflow-y-auto" id="matchListContainer"></div>
             </div>
 
-            <button class="btn btn-close" onclick="closeModal('adminDashboard')">ปิด</button>
+            <!-- Knockout Tab -->
+            <div class="tab-content" id="knockoutTab">
+                <div class="mb-4 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                    <p class="text-sm text-gray-300">
+                        <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                        เลือกทีมที่ผ่านเข้ารอบจากแต่ละกลุ่ม (แนะนำ 2 ทีมต่อกลุ่ม)
+                    </p>
+                </div>
+                
+                <div id="qualifierSelection" class="space-y-4 mb-6">
+                    <!-- Qualifier selection will be generated here -->
+                </div>
+
+                <button onclick="generateKnockoutBracket()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-bold hover:shadow-lg transition-all mb-4">
+                    <i class="fas fa-play mr-2"></i>สร้างตารางแข่งขัน
+                </button>
+
+                <div class="border-t border-slate-600 pt-4 mt-4">
+                    <h4 class="text-lg font-bold text-neon-cyan mb-3">จัดการรอบน็อคเอาท์</h4>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-300 mb-2 text-sm">รอบ</label>
+                            <select id="koRound" onchange="updateKOMatchSelect()" 
+                                class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                                <option value="quarter">รอบ 8 ทีม</option>
+                                <option value="semi">รอบ 4 ทีม</option>
+                                <option value="final">รอบชิงชนะเลิศ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2 text-sm">แมทช์</label>
+                            <select id="koMatch" 
+                                class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-300 mb-2 text-sm">ผู้ชนะ</label>
+                        <select id="koWinner" 
+                            class="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-neon-cyan">
+                            <option value="">เลือกผู้ชนะ</option>
+                        </select>
+                    </div>
+                    <button onclick="saveKnockoutResult()" class="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg font-bold hover:shadow-lg transition-all">
+                        <i class="fas fa-trophy mr-2"></i>บันทึกผลการแข่งขัน
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="closeModal('adminDashboard')" class="w-full mt-6 py-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-all">
+                ปิด
+            </button>
         </div>
     </div>
 
@@ -673,32 +512,44 @@
             A: {
                 name: "GROUP A",
                 icon: "⚡",
+                color: "from-yellow-600 to-orange-600",
                 teams: ["PkOnlyOne 28144", "PEE1579X2", "R4IDENKung", "SatoshiNo1", "ShieldheroEXE"]
             },
             B: {
                 name: "GROUP B",
                 icon: "🔥",
+                color: "from-red-600 to-pink-600",
                 teams: ["Opening2001", "kaowmunkai", "MIXKUN5264", "ZOCOCO4473", "Yui20656"]
             },
             C: {
                 name: "GROUP C",
                 icon: "🌿",
+                color: "from-green-600 to-emerald-600",
                 teams: ["ArrantSeal16457", "lnwsoap007", "iceeiei001", "color7892409", "JasperPaoXD"]
             },
             D: {
                 name: "GROUP D",
-                icon: "🔴",
+                icon: "💎",
+                color: "from-blue-600 to-cyan-600",
                 teams: ["NOOMGAMER1162", "tlekung011151", "BeamInwza77", "flowsavagez", "Mashiro4997"]
             },
             E: {
                 name: "GROUP E",
                 icon: "💧",
+                color: "from-purple-600 to-indigo-600",
                 teams: ["chiwken1667", "Tonwan0", "BasZERO9xD", "BOOM1112982", "Bosskung6059"]
             }
         };
 
         let teamsScores = {};
         let matches = {};
+        let knockoutData = {
+            qualifiers: [],
+            quarter: [],
+            semi: [],
+            final: null,
+            champion: null
+        };
 
         // Firebase Configuration
         const firebaseConfig = {
@@ -719,10 +570,8 @@
                 database = firebase.database();
                 dataRef = database.ref('tournament');
 
-                // Update sync status
                 updateSyncStatus('connected', 'เชื่อมต่อแล้ว');
 
-                // Listen for connection state
                 const connectedRef = database.ref('.info/connected');
                 connectedRef.on('value', (snapshot) => {
                     if (snapshot.val() === true) {
@@ -732,13 +581,14 @@
                     }
                 });
 
-                // Listen for real-time updates
                 dataRef.on('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         if (data.scores) teamsScores = data.scores;
                         if (data.matches) matches = data.matches;
+                        if (data.knockout) knockoutData = data.knockout;
                         renderGroups();
+                        renderKnockoutBracket();
                     } else {
                         initializeData();
                     }
@@ -748,7 +598,6 @@
             } catch (error) {
                 console.error('Firebase initialization error:', error);
                 updateSyncStatus('disconnected', 'เกิดข้อผิดพลาด');
-                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Firebase: ' + error.message);
                 return false;
             }
         }
@@ -759,14 +608,12 @@
             
             if (status === 'connected') {
                 indicator.classList.remove('disconnected');
-                syncText.textContent = text;
             } else {
                 indicator.classList.add('disconnected');
-                syncText.textContent = text;
             }
+            syncText.textContent = text;
         }
 
-        // Initialize data structure
         function initializeData() {
             Object.keys(groupsData).forEach(group => {
                 matches[group] = {
@@ -790,16 +637,15 @@
             saveToFirebase();
         }
 
-        // Save data to Firebase
         function saveToFirebase() {
             if (dataRef) {
                 dataRef.set({
                     scores: teamsScores,
                     matches: matches,
+                    knockout: knockoutData,
                     lastUpdated: Date.now()
                 }).catch(error => {
                     console.error('Error saving to Firebase:', error);
-                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + error.message);
                 });
             }
         }
@@ -811,7 +657,6 @@
             Object.keys(groupsData).forEach(groupKey => {
                 const group = groupsData[groupKey];
                 
-                // Ensure teamsScores exist for all teams
                 group.teams.forEach(team => {
                     if (!teamsScores[team]) {
                         teamsScores[team] = { 
@@ -829,7 +674,7 @@
                 });
 
                 const groupCard = document.createElement('div');
-                groupCard.className = `group-card group-${groupKey.toLowerCase()}`;
+                groupCard.className = 'glass-panel rounded-xl overflow-hidden group-card';
                 groupCard.onclick = () => toggleGroup(groupCard);
 
                 let matchesHTML = '';
@@ -840,17 +685,17 @@
                             const matchNum = matchKey.replace('match', '');
                             const winnerText = match.winner ? 
                                 (match.winner === 'team1' ? `🏆 ${match.team1}` : `🏆 ${match.team2}`) : 
-                                'ยังไม่แข่ง';
+                                '<span class="text-gray-500">รอผลการแข่งขัน</span>';
                             
                             matchesHTML += `
-                                <div class="match-item">
-                                    <h4>Match ${matchNum}</h4>
-                                    <div class="team-vs">
-                                        <span>${match.team1}</span>
-                                        <span class="vs-text">VS</span>
-                                        <span>${match.team2}</span>
+                                <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                                    <div class="text-xs text-gray-400 mb-1">Match ${matchNum}</div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-white">${match.team1}</span>
+                                        <span class="text-neon-cyan font-bold mx-2">VS</span>
+                                        <span class="text-white">${match.team2}</span>
                                     </div>
-                                    <div class="match-winner">${winnerText}</div>
+                                    <div class="text-xs text-center mt-2 ${match.winner ? 'text-win-green' : 'text-gray-500'}">${winnerText}</div>
                                 </div>
                             `;
                         }
@@ -858,40 +703,44 @@
                 }
 
                 groupCard.innerHTML = `
-                    <div class="group-header">
-                        <span class="pokemon-icon">${group.icon}</span>
-                        <div class="group-title">${group.name}</div>
-                        <div class="team-count">${group.teams.length} Teams</div>
-                        <div class="expand-icon">▼</div>
+                    <div class="bg-gradient-to-r ${group.color} p-6 text-center relative">
+                        <div class="text-5xl mb-2" style="filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));">${group.icon}</div>
+                        <div class="text-2xl font-bold tracking-wider">${group.name}</div>
+                        <div class="text-sm opacity-90 mt-1">${group.teams.length} Teams</div>
+                        <div class="absolute bottom-2 right-4 text-2xl transition-transform" style="transition: transform 0.3s;">▼</div>
                     </div>
-                    <div class="group-body">
-                        ${matchesHTML ? `<div style="margin-bottom: 20px;">${matchesHTML}</div>` : ''}
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>อันดับ</th>
-                                    <th>ทีม</th>
-                                    <th>M1</th>
-                                    <th>M2</th>
-                                    <th>M3</th>
-                                    <th>M4</th>
-                                    <th>คะแนน</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${sortedTeams.map((team, index) => `
-                                    <tr>
-                                        <td class="rank-cell rank-${index + 1}">${index + 1}</td>
-                                        <td class="team-name-cell">${team}</td>
-                                        <td class="match-cell">${teamsScores[team]?.match1 || 0}</td>
-                                        <td class="match-cell">${teamsScores[team]?.match2 || 0}</td>
-                                        <td class="match-cell">${teamsScores[team]?.match3 || 0}</td>
-                                        <td class="match-cell">${teamsScores[team]?.match4 || 0}</td>
-                                        <td class="score-cell">${teamsScores[team]?.total || 0}</td>
+                    <div class="group-body p-6" style="display: none;">
+                        ${matchesHTML ? `<div class="mb-6">${matchesHTML}</div>` : ''}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-800/50">
+                                    <tr class="text-gray-400 border-b border-slate-700">
+                                        <th class="p-3 text-center">อันดับ</th>
+                                        <th class="p-3 text-left">ทีม</th>
+                                        <th class="p-3 text-center">M1</th>
+                                        <th class="p-3 text-center">M2</th>
+                                        <th class="p-3 text-center">M3</th>
+                                        <th class="p-3 text-center">M4</th>
+                                        <th class="p-3 text-center">รวม</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    ${sortedTeams.map((team, index) => `
+                                        <tr class="border-b border-slate-700/50 hover:bg-white/5">
+                                            <td class="p-3 text-center">
+                                                <span class="font-bold ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-600' : 'text-gray-500'}">${index + 1}</span>
+                                            </td>
+                                            <td class="p-3 text-white font-semibold">${team}</td>
+                                            <td class="p-3 text-center text-gray-400">${teamsScores[team]?.match1 || 0}</td>
+                                            <td class="p-3 text-center text-gray-400">${teamsScores[team]?.match2 || 0}</td>
+                                            <td class="p-3 text-center text-gray-400">${teamsScores[team]?.match3 || 0}</td>
+                                            <td class="p-3 text-center text-gray-400">${teamsScores[team]?.match4 || 0}</td>
+                                            <td class="p-3 text-center font-bold text-neon-cyan text-lg">${teamsScores[team]?.total || 0}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 `;
 
@@ -901,14 +750,160 @@
 
         function toggleGroup(element) {
             const isActive = element.classList.contains('active');
-            document.querySelectorAll('.group-card').forEach(card => {
+            const allCards = document.querySelectorAll('.group-card');
+            
+            allCards.forEach(card => {
                 card.classList.remove('active');
+                const body = card.querySelector('.group-body');
+                const icon = card.querySelector('.absolute.bottom-2');
+                if (body) body.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(0deg)';
             });
+            
             if (!isActive) {
                 element.classList.add('active');
+                const body = element.querySelector('.group-body');
+                const icon = element.querySelector('.absolute.bottom-2');
+                if (body) body.style.display = 'block';
+                if (icon) icon.style.transform = 'rotate(180deg)';
             }
         }
 
+        function switchView(view) {
+            const groupsView = document.getElementById('groupsView');
+            const knockoutView = document.getElementById('knockoutView');
+            const btnGroups = document.getElementById('btnGroups');
+            const btnKnockout = document.getElementById('btnKnockout');
+
+            if (view === 'groups') {
+                groupsView.style.display = 'block';
+                knockoutView.style.display = 'none';
+                btnGroups.className = 'hidden md:block px-4 py-2 rounded-lg bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 transition-all';
+                btnKnockout.className = 'hidden md:block px-4 py-2 rounded-lg bg-slate-700 text-gray-300 hover:bg-slate-600 transition-all';
+            } else {
+                groupsView.style.display = 'none';
+                knockoutView.style.display = 'block';
+                btnGroups.className = 'hidden md:block px-4 py-2 rounded-lg bg-slate-700 text-gray-300 hover:bg-slate-600 transition-all';
+                btnKnockout.className = 'hidden md:block px-4 py-2 rounded-lg bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 transition-all';
+                renderKnockoutBracket();
+            }
+        }
+
+        function renderKnockoutBracket() {
+            const container = document.getElementById('knockoutBracket');
+            
+            if (!knockoutData.qualifiers || knockoutData.qualifiers.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🏆</div>
+                        <p class="text-xl text-gray-400">ยังไม่มีทีมเข้ารอบตัดเชือก</p>
+                        <p class="text-sm text-gray-500 mt-2">กรุณาเข้า Admin Panel เพื่อเลือกทีมที่เข้ารอบ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // Quarter Finals
+            if (knockoutData.quarter && knockoutData.quarter.length > 0) {
+                html += '<div class="bracket-round"><div class="text-center text-neon-cyan font-bold mb-4">รอบ 8 ทีม</div>';
+                knockoutData.quarter.forEach((match, index) => {
+                    const isWinner1 = match.winner === match.team1;
+                    const isWinner2 = match.winner === match.team2;
+                    html += `
+                        <div class="bracket-match ${match.winner ? 'winner' : ''}">
+                            <div class="text-xs text-gray-400 mb-2">Match ${index + 1}</div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between ${isWinner1 ? 'text-win-green font-bold' : ''}">
+                                    ${isWinner1 ? '<i class="fas fa-trophy text-sm mr-2"></i>' : ''}
+                                    <span>${match.team1 || 'TBD'}</span>
+                                </div>
+                                <div class="text-center text-xs text-gray-500">vs</div>
+                                <div class="flex items-center justify-between ${isWinner2 ? 'text-win-green font-bold' : ''}">
+                                    ${isWinner2 ? '<i class="fas fa-trophy text-sm mr-2"></i>' : ''}
+                                    <span>${match.team2 || 'TBD'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Semi Finals
+            if (knockoutData.semi && knockoutData.semi.length > 0) {
+                html += '<div class="bracket-round"><div class="text-center text-neon-cyan font-bold mb-4">รอบ 4 ทีม</div>';
+                knockoutData.semi.forEach((match, index) => {
+                    const isWinner1 = match.winner === match.team1;
+                    const isWinner2 = match.winner === match.team2;
+                    html += `
+                        <div class="bracket-match ${match.winner ? 'winner' : ''}">
+                            <div class="text-xs text-gray-400 mb-2">Semi ${index + 1}</div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between ${isWinner1 ? 'text-win-green font-bold' : ''}">
+                                    ${isWinner1 ? '<i class="fas fa-trophy text-sm mr-2"></i>' : ''}
+                                    <span>${match.team1 || 'TBD'}</span>
+                                </div>
+                                <div class="text-center text-xs text-gray-500">vs</div>
+                                <div class="flex items-center justify-between ${isWinner2 ? 'text-win-green font-bold' : ''}">
+                                    ${isWinner2 ? '<i class="fas fa-trophy text-sm mr-2"></i>' : ''}
+                                    <span>${match.team2 || 'TBD'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Final
+            if (knockoutData.final) {
+                const match = knockoutData.final;
+                const isWinner1 = match.winner === match.team1;
+                const isWinner2 = match.winner === match.team2;
+                html += `
+                    <div class="bracket-round">
+                        <div class="text-center text-neon-yellow font-bold mb-4 text-xl">
+                            <i class="fas fa-crown mr-2"></i>ชิงชนะเลิศ
+                        </div>
+                        <div class="bracket-match ${match.winner ? 'winner glow-box' : ''}" style="min-width: 250px;">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between ${isWinner1 ? 'text-win-green font-bold text-lg' : ''}">
+                                    ${isWinner1 ? '<i class="fas fa-trophy mr-2"></i>' : ''}
+                                    <span>${match.team1 || 'TBD'}</span>
+                                </div>
+                                <div class="text-center text-neon-cyan font-bold">VS</div>
+                                <div class="flex items-center justify-between ${isWinner2 ? 'text-win-green font-bold text-lg' : ''}">
+                                    ${isWinner2 ? '<i class="fas fa-trophy mr-2"></i>' : ''}
+                                    <span>${match.team2 || 'TBD'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Champion
+            if (knockoutData.champion) {
+                html += `
+                    <div class="bracket-round">
+                        <div class="text-center text-neon-yellow font-bold mb-4 text-2xl">
+                            <i class="fas fa-crown mr-2"></i>แชมป์
+                        </div>
+                        <div class="glow-box rounded-xl p-6 text-center" style="background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,215,0,0.05)); min-width: 200px;">
+                            <div class="text-6xl mb-4">🏆</div>
+                            <div class="text-2xl font-bold text-neon-yellow">${knockoutData.champion}</div>
+                            <div class="text-sm text-gray-400 mt-2">ผู้ชนะการแข่งขัน</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Admin Functions
         function openAdminModal() {
             if (isAdmin) {
                 openAdminDashboard();
@@ -929,11 +924,11 @@
         }
 
         function openAdminDashboard() {
-            // Wait a moment for modal to be visible
             setTimeout(() => {
                 populateGroupSelects();
                 updateTeamSelect();
                 updateMatchList();
+                renderQualifierSelection();
             }, 100);
             document.getElementById('adminDashboard').classList.add('active');
         }
@@ -942,31 +937,40 @@
             const selects = ['editGroup', 'matchGroup'];
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
-                select.innerHTML = Object.keys(groupsData).map(key => 
-                    `<option value="${key}">${groupsData[key].name}</option>`
-                ).join('');
+                if (select) {
+                    select.innerHTML = Object.keys(groupsData).map(key => 
+                        `<option value="${key}">${groupsData[key].name}</option>`
+                    ).join('');
+                }
             });
         }
 
         function updateTeamSelect() {
             const groupSelect = document.getElementById('editGroup');
             const teamSelect = document.getElementById('editTeam');
-            const matchSelect = document.getElementById('editMatch');
             
-            if (!groupSelect || !teamSelect || !matchSelect) return;
+            if (!groupSelect || !teamSelect) return;
             
             const groupKey = groupSelect.value;
             if (!groupKey || !groupsData[groupKey]) return;
             
-            // Update team list
             teamSelect.innerHTML = groupsData[groupKey].teams.map(team => 
                 `<option value="${team}">${team}</option>`
             ).join('');
 
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            const teamSelect = document.getElementById('editTeam');
+            const matchSelect = document.getElementById('editMatch');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            if (!teamSelect || !matchSelect || !scoreDisplay) return;
+            
             const selectedTeam = teamSelect.value;
             const selectedMatch = matchSelect.value;
             
-            // Ensure team scores exist
             if (!teamsScores[selectedTeam]) {
                 teamsScores[selectedTeam] = { 
                     match1: 0, 
@@ -978,22 +982,22 @@
             }
             
             currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
-            
-            const scoreDisplay = document.getElementById('scoreDisplay');
-            if (scoreDisplay) {
-                scoreDisplay.textContent = currentScore;
-            }
+            scoreDisplay.textContent = currentScore;
         }
 
         function updateMatchTeamSelects() {
-            const groupKey = document.getElementById('matchGroup').value;
+            const groupKey = document.getElementById('matchGroup')?.value;
+            if (!groupKey || !groupsData[groupKey]) return;
+            
             const teams = groupsData[groupKey].teams;
             
             ['team1Select', 'team2Select'].forEach(selectId => {
                 const select = document.getElementById(selectId);
-                select.innerHTML = teams.map(team => 
-                    `<option value="${team}">${team}</option>`
-                ).join('');
+                if (select) {
+                    select.innerHTML = teams.map(team => 
+                        `<option value="${team}">${team}</option>`
+                    ).join('');
+                }
             });
         }
 
@@ -1019,7 +1023,6 @@
                 return;
             }
             
-            // Ensure team data exists
             if (!teamsScores[team]) {
                 teamsScores[team] = { 
                     match1: 0, 
@@ -1036,31 +1039,20 @@
                                         (teamsScores[team].match3 || 0) + 
                                         (teamsScores[team].match4 || 0);
             
-            console.log('Saving score:', team, match, currentScore, 'Total:', teamsScores[team].total);
-            
             saveToFirebase();
-            alert('บันทึกคะแนนสำเร็จ! ✅');
+            alert('✅ บันทึกคะแนนสำเร็จ!');
         }
 
         function resetScore() {
             const teamSelect = document.getElementById('editTeam');
             const matchSelect = document.getElementById('editMatch');
             
-            if (!teamSelect || !matchSelect) {
-                alert('เกิดข้อผิดพลาด: ไม่พบข้อมูล');
-                return;
-            }
+            if (!teamSelect || !matchSelect) return;
             
             const team = teamSelect.value;
             const match = matchSelect.value;
             
-            if (!team || !match) {
-                alert('กรุณาเลือกทีมและแมทช์');
-                return;
-            }
-            
             if (confirm(`ต้องการลบคะแนน ${match} ของทีม ${team} ใช่หรือไม่?`)) {
-                // Ensure team data exists
                 if (!teamsScores[team]) {
                     teamsScores[team] = { 
                         match1: 0, 
@@ -1079,10 +1071,8 @@
                 currentScore = 0;
                 document.getElementById('scoreDisplay').textContent = currentScore;
                 
-                console.log('Reset score:', team, match);
-                
                 saveToFirebase();
-                alert('ลบคะแนนสำเร็จ! ✅');
+                alert('✅ ลบคะแนนสำเร็จ!');
             }
         }
 
@@ -1103,14 +1093,8 @@
                 return;
             }
 
-            // Ensure matches object exists for this group
             if (!matches[groupKey]) {
-                matches[groupKey] = {
-                    match1: { team1: null, team2: null, winner: null },
-                    match2: { team1: null, team2: null, winner: null },
-                    match3: { team1: null, team2: null, winner: null },
-                    match4: { team1: null, team2: null, winner: null }
-                };
+                matches[groupKey] = {};
             }
 
             matches[groupKey][matchNum] = {
@@ -1119,11 +1103,9 @@
                 winner: winner || null
             };
 
-            console.log('Saving match:', groupKey, matchNum, matches[groupKey][matchNum]);
-
             saveToFirebase();
             updateMatchList();
-            alert('บันทึกแมทช์สำเร็จ! ✅');
+            alert('✅ บันทึกแมทช์สำเร็จ!');
         }
 
         function deleteMatch() {
@@ -1136,7 +1118,6 @@
             }
 
             if (confirm(`ต้องการลบ ${matchNum} ใช่หรือไม่?`)) {
-                // Ensure matches object exists
                 if (!matches[groupKey]) {
                     matches[groupKey] = {};
                 }
@@ -1147,22 +1128,20 @@
                     winner: null
                 };
 
-                console.log('Deleting match:', groupKey, matchNum);
-
                 saveToFirebase();
                 updateMatchList();
-                alert('ลบแมทช์สำเร็จ! ✅');
+                alert('✅ ลบแมทช์สำเร็จ!');
             }
         }
 
         function updateMatchList() {
-            const groupKey = document.getElementById('matchGroup').value;
+            const groupKey = document.getElementById('matchGroup')?.value;
             if (!groupKey) return;
             
             updateMatchTeamSelects();
             
             const container = document.getElementById('matchListContainer');
-            let html = '<h3 style="color: #00d4ff; margin-top: 20px;">รายการแมทช์ทั้งหมด</h3>';
+            let html = '<h3 class="text-lg font-bold text-neon-cyan mb-3">รายการแมทช์ทั้งหมด</h3>';
 
             if (matches[groupKey]) {
                 Object.keys(matches[groupKey]).forEach(matchKey => {
@@ -1171,17 +1150,17 @@
                         const matchNum = matchKey.replace('match', '');
                         const winnerText = match.winner ? 
                             (match.winner === 'team1' ? `🏆 ${match.team1} ชนะ` : `🏆 ${match.team2} ชนะ`) : 
-                            'ยังไม่มีผู้ชนะ';
+                            '<span class="text-gray-500">ยังไม่มีผู้ชนะ</span>';
                         
                         html += `
-                            <div class="match-item">
-                                <h4>Match ${matchNum}</h4>
-                                <div class="team-vs">
+                            <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                                <div class="text-sm font-bold text-neon-cyan mb-2">Match ${matchNum}</div>
+                                <div class="flex items-center justify-between text-sm text-white mb-2">
                                     <span>${match.team1}</span>
-                                    <span class="vs-text">VS</span>
+                                    <span class="text-gray-500 mx-2">VS</span>
                                     <span>${match.team2}</span>
                                 </div>
-                                <div class="match-winner">${winnerText}</div>
+                                <div class="text-xs text-center ${match.winner ? 'text-win-green' : 'text-gray-500'}">${winnerText}</div>
                             </div>
                         `;
                     }
@@ -1191,17 +1170,181 @@
             container.innerHTML = html;
         }
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        function renderQualifierSelection() {
+            const container = document.getElementById('qualifierSelection');
+            let html = '';
+
+            Object.keys(groupsData).forEach(groupKey => {
+                const group = groupsData[groupKey];
+                const sortedTeams = [...group.teams].sort((a, b) => {
+                    return (teamsScores[b]?.total || 0) - (teamsScores[a]?.total || 0);
+                });
+
+                html += `
+                    <div class="bg-slate-800/50 rounded-lg p-4">
+                        <h4 class="font-bold text-white mb-3">${group.name} - เลือกทีมเข้ารอบ</h4>
+                        <div class="space-y-2">
+                            ${sortedTeams.map((team, index) => {
+                                const isQualified = knockoutData.qualifiers.includes(team);
+                                return `
+                                    <label class="flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-slate-700/50">
+                                        <input type="checkbox" 
+                                            ${isQualified ? 'checked' : ''} 
+                                            onchange="toggleQualifier('${team}')"
+                                            class="w-5 h-5 rounded border-gray-600 text-neon-cyan focus:ring-neon-cyan">
+                                        <span class="flex-1 text-white">
+                                            <span class="${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-400' : 'text-gray-500'} mr-2">#${index + 1}</span>
+                                            ${team}
+                                        </span>
+                                        <span class="text-sm text-gray-400">${teamsScores[team]?.total || 0} pts</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleQualifier(team) {
+            const index = knockoutData.qualifiers.indexOf(team);
+            if (index > -1) {
+                knockoutData.qualifiers.splice(index, 1);
+            } else {
+                knockoutData.qualifiers.push(team);
+            }
+            saveToFirebase();
+        }
+
+        function generateKnockoutBracket() {
+            if (knockoutData.qualifiers.length < 8) {
+                alert('กรุณาเลือกอย่างน้อย 8 ทีมเพื่อเข้ารอบตัดเชือก!');
+                return;
+            }
+
+            if (knockoutData.qualifiers.length > 8) {
+                alert('เลือกได้สูงสุด 8 ทีมเท่านั้น!');
+                return;
+            }
+
+            // Create quarter finals matches
+            knockoutData.quarter = [];
+            for (let i = 0; i < 8; i += 2) {
+                knockoutData.quarter.push({
+                    team1: knockoutData.qualifiers[i],
+                    team2: knockoutData.qualifiers[i + 1],
+                    winner: null
+                });
+            }
+
+            // Initialize semi and final
+            knockoutData.semi = [
+                { team1: null, team2: null, winner: null },
+                { team1: null, team2: null, winner: null }
+            ];
+            knockoutData.final = { team1: null, team2: null, winner: null };
+            knockoutData.champion = null;
+
+            saveToFirebase();
+            renderKnockoutBracket();
+            updateKOMatchSelect();
+            alert('✅ สร้างตารางแข่งขันสำเร็จ!');
+        }
+
+        function updateKOMatchSelect() {
+            const round = document.getElementById('koRound')?.value;
+            const matchSelect = document.getElementById('koMatch');
+            const winnerSelect = document.getElementById('koWinner');
             
-            if (tabName === 'scores') {
+            if (!matchSelect || !winnerSelect || !round) return;
+
+            let matches = [];
+            if (round === 'quarter' && knockoutData.quarter) {
+                matches = knockoutData.quarter;
+            } else if (round === 'semi' && knockoutData.semi) {
+                matches = knockoutData.semi;
+            } else if (round === 'final' && knockoutData.final) {
+                matches = [knockoutData.final];
+            }
+
+            matchSelect.innerHTML = matches.map((match, index) => 
+                `<option value="${index}">Match ${index + 1}</option>`
+            ).join('');
+
+            // Update winner select
+            if (matches.length > 0) {
+                const matchIndex = parseInt(matchSelect.value) || 0;
+                const match = matches[matchIndex];
+                winnerSelect.innerHTML = `
+                    <option value="">เลือกผู้ชนะ</option>
+                    ${match.team1 ? `<option value="${match.team1}">${match.team1}</option>` : ''}
+                    ${match.team2 ? `<option value="${match.team2}">${match.team2}</option>` : ''}
+                `;
+            }
+        }
+
+        function saveKnockoutResult() {
+            const round = document.getElementById('koRound')?.value;
+            const matchIndex = parseInt(document.getElementById('koMatch')?.value);
+            const winner = document.getElementById('koWinner')?.value;
+
+            if (!winner) {
+                alert('กรุณาเลือกผู้ชนะ!');
+                return;
+            }
+
+            let match;
+            if (round === 'quarter') {
+                match = knockoutData.quarter[matchIndex];
+                match.winner = winner;
+
+                // Update semi finals
+                const semiIndex = Math.floor(matchIndex / 2);
+                if (matchIndex % 2 === 0) {
+                    knockoutData.semi[semiIndex].team1 = winner;
+                } else {
+                    knockoutData.semi[semiIndex].team2 = winner;
+                }
+            } else if (round === 'semi') {
+                match = knockoutData.semi[matchIndex];
+                match.winner = winner;
+
+                // Update final
+                if (matchIndex === 0) {
+                    knockoutData.final.team1 = winner;
+                } else {
+                    knockoutData.final.team2 = winner;
+                }
+            } else if (round === 'final') {
+                match = knockoutData.final;
+                match.winner = winner;
+                knockoutData.champion = winner;
+            }
+
+            saveToFirebase();
+            renderKnockoutBracket();
+            updateKOMatchSelect();
+            alert('✅ บันทึกผลการแข่งขันสำเร็จ!');
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'scores') {
                 document.querySelector('.tab:nth-child(1)').classList.add('active');
                 document.getElementById('scoresTab').classList.add('active');
-            } else if (tabName === 'matches') {
+            } else if (tab === 'matches') {
                 document.querySelector('.tab:nth-child(2)').classList.add('active');
                 document.getElementById('matchesTab').classList.add('active');
                 updateMatchList();
+            } else if (tab === 'knockout') {
+                document.querySelector('.tab:nth-child(3)').classList.add('active');
+                document.getElementById('knockoutTab').classList.add('active');
+                renderQualifierSelection();
+                updateKOMatchSelect();
             }
         }
 
@@ -1211,38 +1354,30 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            const editGroup = document.getElementById('editGroup');
-            const editTeam = document.getElementById('editTeam');
-            const editMatch = document.getElementById('editMatch');
-            const matchGroup = document.getElementById('matchGroup');
-
-            if (editGroup) {
-                editGroup.addEventListener('change', updateTeamSelect);
+            const koRound = document.getElementById('koRound');
+            const koMatch = document.getElementById('koMatch');
+            
+            if (koRound) {
+                koRound.addEventListener('change', updateKOMatchSelect);
             }
-            if (editTeam) {
-                editTeam.addEventListener('change', () => {
-                    const selectedTeam = editTeam.value;
-                    const selectedMatch = document.getElementById('editMatch')?.value;
-                    if (teamsScores[selectedTeam] && selectedMatch) {
-                        currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
-                        document.getElementById('scoreDisplay').textContent = currentScore;
+            if (koMatch) {
+                koMatch.addEventListener('change', () => {
+                    const round = document.getElementById('koRound')?.value;
+                    const matchIndex = parseInt(koMatch.value);
+                    const winnerSelect = document.getElementById('koWinner');
+                    
+                    let match;
+                    if (round === 'quarter') match = knockoutData.quarter?.[matchIndex];
+                    else if (round === 'semi') match = knockoutData.semi?.[matchIndex];
+                    else if (round === 'final') match = knockoutData.final;
+                    
+                    if (match && winnerSelect) {
+                        winnerSelect.innerHTML = `
+                            <option value="">เลือกผู้ชนะ</option>
+                            ${match.team1 ? `<option value="${match.team1}">${match.team1}</option>` : ''}
+                            ${match.team2 ? `<option value="${match.team2}">${match.team2}</option>` : ''}
+                        `;
                     }
-                });
-            }
-            if (editMatch) {
-                editMatch.addEventListener('change', () => {
-                    const selectedTeam = document.getElementById('editTeam')?.value;
-                    const selectedMatch = editMatch.value;
-                    if (teamsScores[selectedTeam] && selectedMatch) {
-                        currentScore = teamsScores[selectedTeam][selectedMatch] || 0;
-                        document.getElementById('scoreDisplay').textContent = currentScore;
-                    }
-                });
-            }
-            if (matchGroup) {
-                matchGroup.addEventListener('change', () => {
-                    updateMatchTeamSelects();
-                    updateMatchList();
                 });
             }
         });
@@ -1255,7 +1390,7 @@
             });
         });
 
-        // Initialize on load
+        // Initialize
         window.addEventListener('load', () => {
             initializeFirebase();
         });
