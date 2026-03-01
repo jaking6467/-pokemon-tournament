@@ -1,1338 +1,717 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PokéTourney 2025 - Double Elimination</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <style>
-        :root {
-            --gold: #ffd700;
-            --cyan: #00e5ff;
-            --purple: #c026d3;
-            --bg: #060b18;
-            --panel: rgba(13,22,46,0.9);
-            --border: rgba(0,229,255,0.15);
-            --win: #22c55e;
-            --loss: #ef4444;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background: var(--bg);
-            background-image:
-                radial-gradient(ellipse at 20% 20%, rgba(0,229,255,0.04) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 80%, rgba(192,38,211,0.05) 0%, transparent 60%),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            color: white;
-            font-family: 'Rajdhani', sans-serif;
-            min-height: 100vh;
-        }
-
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.3); border-radius: 3px; }
-
-        /* HEADER */
-        header {
-            position: sticky; top: 0; z-index: 100;
-            background: rgba(6,11,24,0.95);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(20px);
-            padding: 12px 24px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-
-        .logo {
-            display: flex; align-items: center; gap: 12px;
-        }
-
-        .logo-icon {
-            width: 42px; height: 42px;
-            background: linear-gradient(135deg, var(--gold), #ff8c00);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 0 20px rgba(255,215,0,0.4);
-        }
-
-        .logo-text {
-            font-family: 'Orbitron', monospace;
-            font-size: 20px; font-weight: 700;
-            background: linear-gradient(90deg, var(--gold), var(--cyan));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: 2px;
-        }
-
-        .nav-btn {
-            padding: 8px 18px;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: #aaa;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 14px; font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            letter-spacing: 1px;
-        }
-
-        .nav-btn.active, .nav-btn:hover {
-            background: rgba(0,229,255,0.1);
-            border-color: var(--cyan);
-            color: var(--cyan);
-        }
-
-        .nav-btns { display: flex; gap: 8px; }
-
-        /* SYNC */
-        .sync-bar {
-            position: fixed; top: 14px; left: 16px;
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(6,11,24,0.9);
-            border: 1px solid var(--border);
-            padding: 6px 14px; border-radius: 20px;
-            font-size: 12px; z-index: 200;
-            backdrop-filter: blur(10px);
-        }
-
-        .sync-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--win);
-            animation: blink 2s infinite;
-        }
-
-        .sync-dot.off { background: var(--loss); animation: none; }
-
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-        /* PANELS */
-        .glass {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        /* MAIN */
-        main { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
-
-        /* VIEWS */
-        .view { display: none; }
-        .view.active { display: block; }
-
-        /* STANDINGS TABLE */
-        .standings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 20px;
-        }
-
-        .team-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .team-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(0,229,255,0.15);
-        }
-
-        .team-card-header {
-            padding: 14px 18px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .team-name {
-            font-family: 'Orbitron', monospace;
-            font-size: 13px; font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .team-score {
-            font-family: 'Orbitron', monospace;
-            font-size: 22px; font-weight: 900;
-            color: var(--cyan);
-            text-shadow: 0 0 10px rgba(0,229,255,0.5);
-        }
-
-        .losses-badge {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 12px; font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .losses-0 { background: rgba(34,197,94,0.15); color: var(--win); border: 1px solid rgba(34,197,94,0.3); }
-        .losses-1 { background: rgba(255,165,0,0.15); color: orange; border: 1px solid rgba(255,165,0,0.3); }
-        .losses-2 { background: rgba(239,68,68,0.15); color: var(--loss); border: 1px solid rgba(239,68,68,0.3); }
-        .eliminated { opacity: 0.45; }
-
-        .match-dots {
-            padding: 12px 18px;
-            display: flex; gap: 8px; align-items: center;
-        }
-
-        .match-dot {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .dot-win { background: rgba(34,197,94,0.2); color: var(--win); border-color: rgba(34,197,94,0.4); }
-        .dot-loss { background: rgba(239,68,68,0.2); color: var(--loss); border-color: rgba(239,68,68,0.4); }
-        .dot-empty { background: rgba(255,255,255,0.03); color: #444; }
-
-        .match-label { font-size: 11px; color: #555; margin-left: 4px; letter-spacing: 1px; }
-
-        /* BRACKET */
-        .bracket-wrap { overflow-x: auto; padding-bottom: 20px; }
-
-        .bracket-container {
-            display: flex;
-            gap: 0;
-            min-width: 900px;
-            align-items: flex-start;
-            position: relative;
-        }
-
-        .bracket-round {
-            display: flex;
-            flex-direction: column;
-            min-width: 220px;
-            flex-shrink: 0;
-        }
-
-        .round-label {
-            text-align: center;
-            font-family: 'Orbitron', monospace;
-            font-size: 11px;
-            letter-spacing: 2px;
-            color: var(--cyan);
-            padding: 10px 0 16px;
-            text-transform: uppercase;
-            opacity: 0.8;
-        }
-
-        .bracket-matches {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 0 12px;
-        }
-
-        .b-match {
-            background: rgba(13,22,46,0.95);
-            border: 1px solid rgba(0,229,255,0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .b-match:hover {
-            border-color: rgba(0,229,255,0.5);
-            box-shadow: 0 0 20px rgba(0,229,255,0.1);
-        }
-
-        .b-match.champion-match {
-            border-color: var(--gold);
-            box-shadow: 0 0 30px rgba(255,215,0,0.25);
-        }
-
-        .b-team {
-            padding: 10px 14px;
-            display: flex; align-items: center; justify-content: space-between;
-            font-size: 13px; font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .b-team:first-of-type { border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        .b-team.winner { background: rgba(34,197,94,0.12); color: var(--win); }
-        .b-team.loser { color: #555; }
-        .b-team.tbd { color: #333; font-style: italic; }
-
-        .b-team-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .b-trophy { font-size: 11px; margin-right: 6px; }
-
-        .match-label-small {
-            text-align: center;
-            font-size: 9px;
-            letter-spacing: 2px;
-            color: #333;
-            padding: 4px;
-            background: rgba(0,0,0,0.3);
-            text-transform: uppercase;
-        }
-
-        .bracket-section-label {
-            font-family: 'Orbitron', monospace;
-            font-size: 11px;
-            letter-spacing: 3px;
-            text-align: center;
-            padding: 8px 16px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-
-        .wl-upper { background: rgba(34,197,94,0.08); color: var(--win); border: 1px solid rgba(34,197,94,0.2); }
-        .wl-lower { background: rgba(239,68,68,0.08); color: #ff7070; border: 1px solid rgba(239,68,68,0.2); }
-        .wl-grand { background: rgba(255,215,0,0.08); color: var(--gold); border: 1px solid rgba(255,215,0,0.2); }
-
-        /* CHAMPION BOX */
-        .champion-box {
-            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.05));
-            border: 2px solid var(--gold);
-            border-radius: 16px;
-            padding: 32px 24px;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(255,215,0,0.2);
-            animation: championGlow 2s infinite;
-        }
-
-        @keyframes championGlow {
-            0%,100% { box-shadow: 0 0 30px rgba(255,215,0,0.2); }
-            50% { box-shadow: 0 0 60px rgba(255,215,0,0.4); }
-        }
-
-        .champion-trophy { font-size: 60px; margin-bottom: 12px; display: block; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-
-        .champion-name {
-            font-family: 'Orbitron', monospace;
-            font-size: 24px; font-weight: 900;
-            color: var(--gold);
-            text-shadow: 0 0 20px rgba(255,215,0,0.6);
-        }
-
-        /* MODAL */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px);
-            z-index: 999;
-            align-items: center; justify-content: center;
-        }
-
-        .modal-overlay.open { display: flex; }
-
-        .modal-box {
-            background: linear-gradient(135deg, #0d1630, #0a0f1e);
-            border: 1px solid rgba(0,229,255,0.3);
-            border-radius: 16px;
-            padding: 28px;
-            width: 90%; max-width: 720px;
-            max-height: 88vh; overflow-y: auto;
-            animation: modalIn 0.25s ease-out;
-        }
-
-        @keyframes modalIn { from{transform:translateY(-30px);opacity:0} to{transform:translateY(0);opacity:1} }
-
-        .modal-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 18px; font-weight: 700;
-            color: var(--cyan);
-            margin-bottom: 20px;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-
-        .tab-bar {
-            display: flex; gap: 2px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px; padding: 4px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            flex: 1; padding: 8px;
-            background: transparent;
-            border: none; color: #666;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 13px; font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer; transition: all 0.2s;
-            letter-spacing: 0.5px;
-        }
-
-        .tab-btn.active {
-            background: rgba(0,229,255,0.15);
-            color: var(--cyan);
-        }
-
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-
-        .form-label {
-            display: block; color: #888;
-            font-size: 12px; letter-spacing: 1px;
-            margin-bottom: 6px; text-transform: uppercase;
-        }
-
-        .form-select, .form-input {
-            width: 100%;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: white;
-            padding: 10px 14px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-select:focus, .form-input:focus { border-color: var(--cyan); }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-        .mb-4 { margin-bottom: 14px; }
-
-        .btn {
-            width: 100%; padding: 12px;
-            border: none; border-radius: 8px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 15px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .btn-green { background: linear-gradient(90deg, #16a34a, #22c55e); color: white; }
-        .btn-red { background: linear-gradient(90deg, #dc2626, #ef4444); color: white; }
-        .btn-purple { background: linear-gradient(90deg, #7c3aed, #c026d3); color: white; }
-        .btn-gray { background: rgba(255,255,255,0.08); color: #aaa; }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-
-        .score-control {
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            margin: 16px 0;
-        }
-
-        .score-btn {
-            width: 46px; height: 46px;
-            border-radius: 50%; border: none;
-            font-family: 'Orbitron', monospace;
-            font-size: 14px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
-        }
-
-        .score-btn:hover { transform: scale(1.1); }
-        .score-btn-minus { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; }
-        .score-btn-plus { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; }
-
-        .score-display {
-            font-family: 'Orbitron', monospace;
-            font-size: 36px; font-weight: 900;
-            color: var(--cyan);
-            min-width: 80px; text-align: center;
-            text-shadow: 0 0 15px rgba(0,229,255,0.4);
-        }
-
-        /* ADMIN BTN */
-        .admin-fab {
-            position: fixed; bottom: 24px; right: 24px;
-            width: 56px; height: 56px;
-            background: linear-gradient(135deg, #7c3aed, #c026d3);
-            border: none; border-radius: 50%;
-            color: white; font-size: 20px;
-            cursor: pointer; z-index: 100;
-            box-shadow: 0 4px 20px rgba(192,38,211,0.4);
-            transition: all 0.2s;
-        }
-
-        .admin-fab:hover { transform: scale(1.1) rotate(90deg); }
-
-        /* FOOTER */
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 20px 24px;
-            text-align: center;
-            color: #333;
-            font-size: 12px;
-            letter-spacing: 1px;
-            margin-top: 40px;
-        }
-
-        /* QUALIFIER SELECTION */
-        .qualifier-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 14px;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 8px;
-            margin-bottom: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .qualifier-item:hover { border-color: var(--border); background: rgba(0,229,255,0.05); }
-        .qualifier-item.selected { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
-
-        .qualifier-check {
-            width: 20px; height: 20px;
-            border: 2px solid #444;
-            border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; transition: all 0.2s; flex-shrink: 0;
-        }
-
-        .qualifier-item.selected .qualifier-check {
-            background: var(--win);
-            border-color: var(--win);
-        }
-
-        .rank-badge {
-            width: 24px; height: 24px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .rank-1 { background: rgba(255,215,0,0.2); color: var(--gold); }
-        .rank-2 { background: rgba(192,192,192,0.2); color: silver; }
-        .rank-other { background: rgba(255,255,255,0.05); color: #666; }
-
-        /* MATCH LIST */
-        .match-item {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 8px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-        }
-
-        .vs-row {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 13px; margin: 4px 0;
-        }
-
-        .vs-text { color: #333; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
-
-        /* SECTION DIVIDER */
-        .section-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 14px; letter-spacing: 3px;
-            color: var(--cyan);
-            margin: 24px 0 16px;
-            display: flex; align-items: center; gap: 10px;
-            opacity: 0.9;
-        }
-
-        .section-title::before, .section-title::after {
-            content: ''; flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0,229,255,0.3), transparent);
-        }
-
-        /* ALERT */
-        .alert-info {
-            background: rgba(0,229,255,0.08);
-            border: 1px solid rgba(0,229,255,0.2);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px; color: #88bbcc;
-            margin-bottom: 14px;
-        }
-
-        .elim-tag {
-            font-size: 10px; font-weight: 700; letter-spacing: 1px;
-            padding: 2px 8px; border-radius: 10px;
-            background: rgba(239,68,68,0.2); color: var(--loss);
-            border: 1px solid rgba(239,68,68,0.3);
-        }
-
-        @media(max-width:600px) {
-            .standings-grid { grid-template-columns: 1fr; }
-            .nav-btn span { display: none; }
-            .grid-2 { grid-template-columns: 1fr; }
-            .bracket-container { min-width: 700px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PokéTourney 2025 – Double Elimination</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --gold:#ffd700;
+  --cyan:#00e5ff;
+  --win:#00e676;
+  --loss:#ff1744;
+  --panel:rgba(10,16,35,0.92);
+  --border:rgba(0,229,255,0.18);
+  --text:#dce8f0;
+}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,229,255,0.07),transparent),
+    radial-gradient(ellipse 60% 40% at 90% 90%,rgba(224,64,251,0.06),transparent);
+  color:var(--text);
+  font-family:'Exo 2',sans-serif;
+  min-height:100vh;
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.25);border-radius:3px}
+
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:80;
+  background:rgba(7,9,15,0.97);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-icon{
+  width:46px;height:46px;border-radius:50%;
+  background:conic-gradient(var(--gold),#ff8c00,var(--gold));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 0 24px rgba(255,215,0,0.45);
+  animation:spin 10s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand-name{
+  font-family:'Orbitron',monospace;font-size:18px;font-weight:900;
+  background:linear-gradient(90deg,var(--gold) 30%,var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;
+}
+.brand-sub{font-size:10px;color:#3a5060;letter-spacing:4px;margin-top:1px}
+.sync-pill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;font-size:11px;letter-spacing:1px;
+}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--win);animation:pulse 2s infinite}
+.sync-dot.off{background:var(--loss);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* PAGE */
+main{padding:28px 20px 80px;max-width:1700px;margin:auto}
+
+.page-title{
+  text-align:center;font-family:'Orbitron',monospace;
+  font-size:clamp(11px,2vw,14px);letter-spacing:6px;color:rgba(0,229,255,0.45);
+  margin-bottom:6px;text-transform:uppercase;
+}
+.info-bar{
+  display:flex;justify-content:center;margin-bottom:28px;
+}
+.info-pill{
+  background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);
+  border-radius:8px;padding:8px 22px;font-size:12px;letter-spacing:1.5px;
+  color:rgba(0,229,255,0.65);
+}
+
+.legend{
+  display:flex;align-items:center;justify-content:center;
+  gap:22px;margin-bottom:26px;flex-wrap:wrap;
+}
+.leg{display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:1px;color:#3a5060}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+
+/* SECTION */
+.section{padding:6px 0 20px}
+.sec-hdr{
+  display:flex;align-items:center;gap:12px;
+  padding:6px 4px 14px;
+}
+.sec-lbl{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:4px;font-weight:700}
+.sec-line{flex:1;height:1px;}
+.upper .sec-lbl{color:var(--win)}
+.upper .sec-line{background:linear-gradient(90deg,rgba(0,230,118,0.3),transparent)}
+.lower .sec-lbl{color:#ff5555}
+.lower .sec-line{background:linear-gradient(90deg,rgba(255,23,68,0.3),transparent)}
+.grand .sec-lbl{color:var(--gold)}
+.grand .sec-line{background:linear-gradient(90deg,rgba(255,215,0,0.4),transparent)}
+
+/* ROUNDS ROW */
+.scroll-x{overflow-x:auto;padding-bottom:12px}
+.rounds{display:flex;align-items:flex-start;gap:0;min-width:600px}
+
+.round{display:flex;flex-direction:column;min-width:200px;flex-shrink:0;padding:0 8px}
+.r-lbl{
+  text-align:center;font-size:9px;letter-spacing:2.5px;
+  color:#1e3040;padding:0 0 10px;
+  text-transform:uppercase;font-family:'Orbitron',monospace;
+}
+.r-matches{display:flex;flex-direction:column;gap:10px;justify-content:space-around;flex:1}
+
+/* MATCH CARD */
+.mc{
+  background:var(--panel);
+  border:1px solid rgba(0,229,255,0.13);
+  border-radius:10px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s,transform .15s;
+}
+.mc:hover{border-color:rgba(0,229,255,0.4);box-shadow:0 0 20px rgba(0,229,255,0.1);transform:translateY(-2px)}
+.mc.gm{border-color:rgba(255,215,0,0.35);box-shadow:0 0 28px rgba(255,215,0,0.12)}
+
+.mc-top{
+  font-size:8px;letter-spacing:2px;
+  background:rgba(0,0,0,0.3);color:#1e3040;
+  padding:4px 10px;font-family:'Orbitron',monospace;
+  border-bottom:1px solid rgba(255,255,255,0.02);
+  text-transform:uppercase;
+}
+.mc-t{
+  display:flex;align-items:center;padding:9px 11px;
+  font-size:12px;font-weight:600;gap:7px;min-height:37px;
+  transition:background .2s;
+}
+.mc-t+.mc-t{border-top:1px solid rgba(255,255,255,0.04)}
+.mc-t.win{background:rgba(0,230,118,0.1);color:var(--win)}
+.mc-t.lose{color:#1e3040}
+.mc-t.tbd{color:#1a2c38;font-style:italic}
+.mc-t.pending{color:#6a8898}
+.mc-t-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-vs{text-align:center;font-size:8px;letter-spacing:2px;color:#152028;padding:1px;background:rgba(0,0,0,0.18)}
+
+/* GF CENTER */
+.gf-center{display:flex;justify-content:center;flex-wrap:wrap;gap:20px;padding:0 10px}
+.gf-round{min-width:240px}
+
+/* CHAMPION */
+.champ-wrap{display:flex;justify-content:center;padding:32px 0 10px}
+.champ-box{
+  background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,140,0,0.04));
+  border:2px solid var(--gold);border-radius:18px;
+  padding:38px 44px;text-align:center;width:300px;
+  animation:cglow 2.5s ease-in-out infinite;
+}
+@keyframes cglow{0%,100%{box-shadow:0 0 30px rgba(255,215,0,0.25)}50%{box-shadow:0 0 65px rgba(255,215,0,0.5)}}
+.champ-trophy{font-size:58px;display:block;margin-bottom:10px;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.champ-ttl{font-size:10px;letter-spacing:4px;color:#7a6020;margin-bottom:10px;font-family:'Orbitron',monospace}
+.champ-name{font-family:'Orbitron',monospace;font-size:19px;font-weight:900;color:var(--gold);text-shadow:0 0 20px rgba(255,215,0,0.55)}
+.champ-sub{font-size:11px;color:#3a3010;margin-top:8px;letter-spacing:2px}
+
+/* EMPTY */
+.empty{text-align:center;padding:80px 20px;color:#1e2e38}
+.empty i{font-size:54px;margin-bottom:14px;display:block;opacity:.35}
+.empty h3{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:3px;margin-bottom:8px;color:#2a3f50}
+.empty p{font-size:12px;letter-spacing:1px}
+
+/* MODAL */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);z-index:999;align-items:center;justify-content:center}
+.ov.open{display:flex}
+.modal{
+  background:linear-gradient(135deg,#0b1225,#080e1c);
+  border:1px solid rgba(0,229,255,0.25);border-radius:18px;
+  padding:30px;width:92%;max-width:640px;max-height:90vh;overflow-y:auto;
+  animation:mdin .25s ease-out;
+}
+@keyframes mdin{from{transform:translateY(-28px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--cyan);text-align:center;letter-spacing:3px;margin-bottom:22px}
+
+.tabs{display:flex;background:rgba(0,0,0,.3);border-radius:8px;padding:4px;margin-bottom:20px;gap:3px}
+.tb{flex:1;padding:8px;border:none;background:transparent;color:#445;font-family:'Exo 2',sans-serif;font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.tb.on{background:rgba(0,229,255,.12);color:var(--cyan)}
+.tp{display:none}.tp.on{display:block}
+
+label{display:block;font-size:11px;letter-spacing:1px;color:#445;margin-bottom:5px;text-transform:uppercase}
+select,input[type=password]{
+  width:100%;background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.08);border-radius:8px;
+  color:var(--text);padding:10px 13px;
+  font-family:'Exo 2',sans-serif;font-size:13px;
+  outline:none;margin-bottom:12px;transition:border-color .2s;-webkit-appearance:none;
+}
+select:focus,input:focus{border-color:var(--cyan)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{width:100%;padding:12px;border:none;border-radius:9px;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px;margin-bottom:8px}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.b-c{background:linear-gradient(90deg,#007ab8,#00b8d4);color:#fff}
+.b-g{background:linear-gradient(90deg,#1a7a3a,#22c55e);color:#fff}
+.b-r{background:linear-gradient(90deg,#991b1b,#ef4444);color:#fff}
+.b-p{background:linear-gradient(90deg,#6d28d9,#a855f7);color:#fff}
+.b-x{background:rgba(255,255,255,.07);color:#556}
+
+.sc{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0}
+.sc-b{width:44px;height:44px;border-radius:50%;border:none;font-family:'Orbitron',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s}
+.sc-b:hover{transform:scale(1.12)}
+.sc-m{background:linear-gradient(135deg,#991b1b,#dc2626);color:#fff}
+.sc-p{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff}
+.sc-v{font-family:'Orbitron',monospace;font-size:34px;font-weight:900;color:var(--cyan);min-width:80px;text-align:center;text-shadow:0 0 12px rgba(0,229,255,.4)}
+
+.qi{display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.05);border-radius:8px;margin-bottom:5px;cursor:pointer;transition:all .2s;user-select:none}
+.qi:hover{border-color:var(--border)}
+.qi.sel{border-color:rgba(0,230,118,.35);background:rgba(0,230,118,.07)}
+.qi-ck{width:18px;height:18px;border:2px solid #2a3f50;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;flex-shrink:0}
+.qi.sel .qi-ck{background:var(--win);border-color:var(--win);color:#000}
+.qi-rk{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.rk1{background:rgba(255,215,0,.18);color:var(--gold)}
+.rk2{background:rgba(192,192,192,.18);color:silver}
+.rk3{background:rgba(255,100,50,.18);color:#ff7043}
+.rkn{background:rgba(255,255,255,.05);color:#3a4f60}
+.qi-name{flex:1;font-size:13px;font-weight:600}
+.elim{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:10px;background:rgba(239,68,68,.2);color:var(--loss);border:1px solid rgba(239,68,68,.3)}
+
+.fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;border-radius:50%;border:none;background:linear-gradient(135deg,#6d28d9,#c026d3);color:#fff;font-size:20px;cursor:pointer;z-index:90;box-shadow:0 4px 20px rgba(192,38,211,.45);transition:all .2s}
+.fab:hover{transform:scale(1.1) rotate(90deg)}
+footer{border-top:1px solid rgba(0,229,255,.05);text-align:center;padding:16px;font-size:10px;letter-spacing:2px;color:#1e2e38}
+@media(max-width:600px){.g2{grid-template-columns:1fr}header{padding:12px 14px}}
+</style>
 </head>
 <body>
 
-<!-- SYNC STATUS -->
-<div class="sync-bar" id="syncBar">
+<header>
+  <div class="brand">
+    <div class="brand-icon">⚡</div>
+    <div>
+      <div class="brand-name">POKÉTOURNEY</div>
+      <div class="brand-sub">2025 · DOUBLE ELIMINATION · 12 TEAMS</div>
+    </div>
+  </div>
+  <div class="sync-pill">
     <div class="sync-dot off" id="syncDot"></div>
     <span id="syncText" style="font-size:11px;letter-spacing:1px">กำลังเชื่อมต่อ...</span>
-</div>
-
-<!-- HEADER -->
-<header>
-    <div class="logo">
-        <div class="logo-icon">⚡</div>
-        <div>
-            <div class="logo-text">POKÉTOURNEY</div>
-            <div style="font-size:10px;color:#555;letter-spacing:3px;margin-top:-2px">2025 · DOUBLE ELIMINATION</div>
-        </div>
-    </div>
-    <div class="nav-btns">
-        <button class="nav-btn active" id="btnStandings" onclick="switchView('standings')">
-            <i class="fas fa-list-ol"></i> <span>ตาราง</span>
-        </button>
-        <button class="nav-btn" id="btnBracket" onclick="switchView('bracket')">
-            <i class="fas fa-sitemap"></i> <span>Bracket</span>
-        </button>
-    </div>
+  </div>
 </header>
 
-<!-- MAIN -->
 <main>
-
-    <!-- STANDINGS VIEW -->
-    <div class="view active" id="standingsView">
-        <div class="section-title">DOUBLE ELIMINATION — STANDINGS</div>
-        <div class="alert-info">
-            <i class="fas fa-info-circle" style="color:var(--cyan);margin-right:8px"></i>
-            ระบบแพ้ 2 รอบคัดออก — แพ้ครั้งแรกลง <b>Lower Bracket</b> · แพ้ครั้งที่สองตกรอบ
-        </div>
-        <div class="standings-grid" id="standingsGrid"></div>
+  <div class="page-title">Tournament Bracket</div>
+  <div class="info-bar">
+    <div class="info-pill">
+      <i class="fas fa-info-circle" style="margin-right:8px;opacity:.7"></i>
+      แพ้ครั้งแรก → Lower Bracket &nbsp;·&nbsp; แพ้ครั้งที่สอง → ตกรอบ
     </div>
+  </div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--win)"></div>ชนะ</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--loss)"></div>แพ้</div>
+    <div class="leg"><div class="leg-dot" style="background:rgba(255,255,255,.15)"></div>รอแข่ง</div>
+    <div class="leg" style="color:var(--win)">▬ Winners Bracket</div>
+    <div class="leg" style="color:#ff5555">▬ Losers Bracket</div>
+    <div class="leg" style="color:var(--gold)">▬ Grand Final</div>
+  </div>
 
-    <!-- BRACKET VIEW -->
-    <div class="view" id="bracketView">
-        <div class="section-title">TOURNAMENT BRACKET</div>
-        <div class="glass" style="padding:20px">
-            <div class="bracket-wrap">
-                <div id="bracketContainer" class="bracket-container">
-                    <div style="text-align:center;padding:60px 40px;color:#333;width:100%">
-                        <div style="font-size:48px;margin-bottom:12px">🏆</div>
-                        <div style="font-family:'Orbitron',monospace;font-size:14px;letter-spacing:2px">ยังไม่มีข้อมูล Bracket</div>
-                        <div style="font-size:12px;color:#222;margin-top:8px">กรุณาสร้าง Bracket จาก Admin Panel</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="championSection"></div>
-    </div>
-
+  <div id="bracketRoot"></div>
+  <div id="champRoot"></div>
 </main>
 
-<!-- ADMIN FAB -->
-<button class="admin-fab" onclick="openAdmin()" title="Admin Panel">
-    <i class="fas fa-cog"></i>
-</button>
+<button class="fab" onclick="openAdmin()"><i class="fas fa-cog"></i></button>
+<footer>© 2025 POKÉTOURNEY · DOUBLE ELIMINATION</footer>
 
-<footer>© 2025 POKÉTOURNEY &nbsp;·&nbsp; DOUBLE ELIMINATION</footer>
-
-<!-- ADMIN LOGIN MODAL -->
-<div class="modal-overlay" id="loginModal">
-    <div class="modal-box" style="max-width:400px">
-        <div class="modal-title"><i class="fas fa-lock" style="margin-right:8px"></i>ADMIN</div>
-        <div class="mb-4">
-            <label class="form-label">รหัสผ่าน</label>
-            <input type="password" id="pwInput" class="form-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
-        <button class="btn btn-green" onclick="doLogin()"><i class="fas fa-unlock" style="margin-right:8px"></i>เข้าสู่ระบบ</button>
-        <button class="btn btn-gray" onclick="closeModal('loginModal')">ปิด</button>
-    </div>
+<!-- LOGIN -->
+<div class="ov" id="loginOv">
+  <div class="modal" style="max-width:360px">
+    <div class="m-title"><i class="fas fa-lock" style="margin-right:8px"></i>ADMIN</div>
+    <label>รหัสผ่าน</label>
+    <input type="password" id="pwIn" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn b-c" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <button class="btn b-x" onclick="closeOv('loginOv')">ปิด</button>
+  </div>
 </div>
 
-<!-- ADMIN DASHBOARD MODAL -->
-<div class="modal-overlay" id="adminModal">
-    <div class="modal-box">
-        <div class="modal-title"><i class="fas fa-cog" style="margin-right:8px"></i>ADMIN DASHBOARD</div>
-
-        <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('tScores')">คะแนน</button>
-            <button class="tab-btn" onclick="switchTab('tMatches')">แมทช์</button>
-            <button class="tab-btn" onclick="switchTab('tBracket')">Bracket</button>
-        </div>
-
-        <!-- TAB: SCORES -->
-        <div class="tab-panel active" id="tScores">
-            <div class="grid-2">
-                <div>
-                    <label class="form-label">ทีม</label>
-                    <select id="sTeam" class="form-select" onchange="refreshScoreDisplay()"></select>
-                </div>
-                <div>
-                    <label class="form-label">แมทช์</label>
-                    <select id="sMatch" class="form-select" onchange="refreshScoreDisplay()">
-                        <option value="match1">Match 1</option>
-                        <option value="match2">Match 2</option>
-                        <option value="match3">Match 3</option>
-                        <option value="match4">Match 4</option>
-                    </select>
-                </div>
-            </div>
-            <div class="score-control">
-                <button class="score-btn score-btn-minus" onclick="adjScore(-10)">-10</button>
-                <button class="score-btn score-btn-minus" onclick="adjScore(-1)">-1</button>
-                <div class="score-display" id="scoreDisplay">0</div>
-                <button class="score-btn score-btn-plus" onclick="adjScore(1)">+1</button>
-                <button class="score-btn score-btn-plus" onclick="adjScore(10)">+10</button>
-            </div>
-            <button class="btn btn-green" onclick="saveScore()"><i class="fas fa-save" style="margin-right:6px"></i>บันทึกคะแนน</button>
-            <button class="btn btn-red" onclick="resetScore()"><i class="fas fa-trash" style="margin-right:6px"></i>รีเซ็ตแมทช์นี้</button>
-        </div>
-
-        <!-- TAB: MATCHES (group round) -->
-        <div class="tab-panel" id="tMatches">
-            <div class="grid-2">
-                <div>
-                    <label class="form-label">แมทช์</label>
-                    <select id="mMatchNum" class="form-select">
-                        <option value="match1">Match 1</option>
-                        <option value="match2">Match 2</option>
-                        <option value="match3">Match 3</option>
-                        <option value="match4">Match 4</option>
-                    </select>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div>
-                    <label class="form-label">ทีม 1</label>
-                    <select id="mTeam1" class="form-select"></select>
-                </div>
-                <div>
-                    <label class="form-label">ทีม 2</label>
-                    <select id="mTeam2" class="form-select"></select>
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="form-label">ผู้ชนะ</label>
-                <select id="mWinner" class="form-select">
-                    <option value="">ยังไม่มีผู้ชนะ</option>
-                    <option value="team1">ทีม 1 ชนะ</option>
-                    <option value="team2">ทีม 2 ชนะ</option>
-                </select>
-            </div>
-            <button class="btn btn-green" onclick="saveMatch()"><i class="fas fa-save" style="margin-right:6px"></i>บันทึกแมทช์</button>
-            <button class="btn btn-red" onclick="deleteMatch()"><i class="fas fa-trash" style="margin-right:6px"></i>ลบแมทช์</button>
-            <div id="matchListEl" style="margin-top:16px;max-height:220px;overflow-y:auto"></div>
-        </div>
-
-        <!-- TAB: BRACKET (double elimination) -->
-        <div class="tab-panel" id="tBracket">
-            <!-- Step 1: select qualifiers -->
-            <div class="section-title" style="font-size:11px">STEP 1 — เลือกทีมเข้ารอบ</div>
-            <div class="alert-info">เลือก 8 ทีม (หรือ 16 ทีม) เพื่อเข้า Double Elimination Bracket</div>
-            <div id="qualifierList" style="max-height:220px;overflow-y:auto;margin-bottom:14px"></div>
-            <button class="btn btn-purple" onclick="genBracket()"><i class="fas fa-play" style="margin-right:6px"></i>สร้าง Bracket จากทีมที่เลือก</button>
-
-            <!-- Step 2: set results -->
-            <div class="section-title" style="font-size:11px;margin-top:20px">STEP 2 — บันทึกผลการแข่งขัน</div>
-            <div class="grid-2">
-                <div>
-                    <label class="form-label">รอบ</label>
-                    <select id="koStage" class="form-select" onchange="refreshKOMatch()">
-                        <option value="wr1">Winners R1</option>
-                        <option value="wr2">Winners R2</option>
-                        <option value="lr1">Losers R1</option>
-                        <option value="lr2">Losers R2</option>
-                        <option value="lr3">Losers R3</option>
-                        <option value="wf">Winners Final</option>
-                        <option value="lf">Losers Final</option>
-                        <option value="gf">Grand Final</option>
-                        <option value="gfr">Grand Final Reset</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">แมทช์</label>
-                    <select id="koMatchSel" class="form-select" onchange="refreshKOWinner()"></select>
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="form-label">ผู้ชนะ</label>
-                <select id="koWinner" class="form-select">
-                    <option value="">เลือกผู้ชนะ</option>
-                </select>
-            </div>
-            <button class="btn btn-green" onclick="saveKOResult()"><i class="fas fa-trophy" style="margin-right:6px"></i>บันทึกผล</button>
-        </div>
-
-        <button class="btn btn-gray" style="margin-top:12px" onclick="closeModal('adminModal')">ปิด</button>
+<!-- ADMIN -->
+<div class="ov" id="adminOv">
+  <div class="modal">
+    <div class="m-title"><i class="fas fa-cog" style="margin-right:8px"></i>ADMIN DASHBOARD</div>
+    <div class="tabs">
+      <button class="tb on" onclick="sTab(0)">สร้าง Bracket</button>
+      <button class="tb" onclick="sTab(1)">บันทึกผล</button>
+      <button class="tb" onclick="sTab(2)">คะแนน</button>
     </div>
+
+    <!-- TAB 0 -->
+    <div class="tp on" id="tp0">
+      <div style="background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.15);border-radius:8px;padding:10px 14px;font-size:12px;color:#5a8090;margin-bottom:14px">
+        <i class="fas fa-info-circle" style="margin-right:6px;color:var(--cyan)"></i>
+        เลือกทีมตามลำดับ Seeding (ทีมที่เลือกก่อน = Seed สูงกว่า) จากนั้นกด "สร้าง"
+      </div>
+      <div style="font-size:11px;color:#334a56;letter-spacing:1px;margin-bottom:8px">
+        เลือกทีม <span id="qCnt" style="color:var(--cyan);font-weight:700">0</span>/12
+      </div>
+      <div id="qList" style="max-height:320px;overflow-y:auto;margin-bottom:14px"></div>
+      <button class="btn b-p" onclick="buildBracket()"><i class="fas fa-play" style="margin-right:6px"></i>สร้าง Bracket</button>
+      <button class="btn b-r" onclick="resetAll()" style="opacity:.65"><i class="fas fa-redo" style="margin-right:6px"></i>รีเซ็ตทั้งหมด</button>
+    </div>
+
+    <!-- TAB 1 -->
+    <div class="tp" id="tp1">
+      <div class="g2">
+        <div>
+          <label>รอบ</label>
+          <select id="stgS" onchange="refreshMS()">
+            <option value="WR1">Winners R1 (WR1) — 6 matches</option>
+            <option value="WR2">Winners R2 (WR2) — 3 matches</option>
+            <option value="WR3">Winners Semi (WR3)</option>
+            <option value="WF">Winners Final (WF)</option>
+            <option value="LR1">Losers R1 (LR1) — 3 matches</option>
+            <option value="LR2">Losers R2 (LR2) — 3 matches</option>
+            <option value="LR3">Losers R3 (LR3)</option>
+            <option value="LR4">Losers Semi (LR4)</option>
+            <option value="LF">Losers Final (LF)</option>
+            <option value="GF">Grand Final (GF)</option>
+            <option value="GFR">GF Reset (GFR)</option>
+          </select>
+        </div>
+        <div>
+          <label>แมทช์</label>
+          <select id="mS" onchange="refreshWS()"></select>
+        </div>
+      </div>
+      <div>
+        <label>ผู้ชนะ</label>
+        <select id="wS"><option value="">เลือกผู้ชนะ</option></select>
+      </div>
+      <button class="btn b-g" onclick="saveRes()"><i class="fas fa-trophy" style="margin-right:6px"></i>บันทึกผล</button>
+      <button class="btn b-r" onclick="clrRes()" style="opacity:.7"><i class="fas fa-times" style="margin-right:6px"></i>ล้างผลแมทช์นี้</button>
+    </div>
+
+    <!-- TAB 2 -->
+    <div class="tp" id="tp2">
+      <div class="g2">
+        <div>
+          <label>ทีม</label>
+          <select id="sT" onchange="rSV()"></select>
+        </div>
+        <div>
+          <label>แมทช์</label>
+          <select id="sM" onchange="rSV()">
+            <option value="m1">Match 1</option>
+            <option value="m2">Match 2</option>
+            <option value="m3">Match 3</option>
+            <option value="m4">Match 4</option>
+          </select>
+        </div>
+      </div>
+      <div class="sc">
+        <button class="sc-b sc-m" onclick="adj(-10)">-10</button>
+        <button class="sc-b sc-m" onclick="adj(-1)">-1</button>
+        <div class="sc-v" id="scV">0</div>
+        <button class="sc-b sc-p" onclick="adj(1)">+1</button>
+        <button class="sc-b sc-p" onclick="adj(10)">+10</button>
+      </div>
+      <button class="btn b-g" onclick="saveSc()"><i class="fas fa-save" style="margin-right:6px"></i>บันทึก</button>
+      <button class="btn b-r" onclick="rstSc()" style="opacity:.7">รีเซ็ต</button>
+    </div>
+
+    <button class="btn b-x" style="margin-top:10px" onclick="closeOv('adminOv')">ปิด</button>
+  </div>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
 <script>
-const ADMIN_PASS = "pokemon2025";
-let isAdmin = false;
-let currentScore = 0;
-let db = null, ref = null;
+const PASS="pokemon2025";
+const TEAMS=["Lugia7985302","JeweledGraph124","chiwken1667","ShieldheroEXE","Opening2001","lnwsoap007","SRWCTT","PkOnlyOne28144","NOOMGAMER1162","Bosskung6059","Tonwan0","FLIM3918"];
 
-const TEAMS = [
-    "Lugia7985302", "JeweledGraph124", "chiwken1667", "ShieldheroEXE",
-    "Opening2001", "lnwsoap007", "SRWCTT", "PkOnlyOne28144",
-    "NOOMGAMER1162", "Bosskung6059", "Tonwan0", "FLIM3918"
-];
+let isAdmin=false,curSc=0,db,ref;
 
-// Data state
-let scores = {};   // {teamName: {match1,match2,match3,match4,total,losses}}
-let groupMatches = {};  // {matchKey: {team1,team2,winner}}
-let deData = {
-    qualifiers: [],
-    wr1:[], wr2:[], lr1:[], lr2:[], lr3:[], wf:[], lf:[], gf:[], gfr:[],
-    champion: null
+let S={
+  qualifiers:[],
+  rounds:{WR1:[],WR2:[],WR3:[],WF:[],LR1:[],LR2:[],LR3:[],LR4:[],LF:[],GF:[],GFR:[]},
+  scores:{},
+  champion:null
 };
 
-// Initialize teams
-function initTeams() {
-    TEAMS.forEach(t => {
-        if (!scores[t]) scores[t] = {match1:0,match2:0,match3:0,match4:0,total:0,losses:0};
-    });
-}
+/* FIREBASE */
+firebase.initializeApp({
+  apiKey:"AIzaSyBw68QgbiMw3XgpWwrVhSuqgE_xeH0rvPo",
+  authDomain:"pokeex-bb85b.firebaseapp.com",
+  databaseURL:"https://pokeex-bb85b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"pokeex-bb85b",
+  storageBucket:"pokeex-bb85b.firebasestorage.app",
+  messagingSenderId:"406912833698",
+  appId:"1:406912833698:web:22f9e5b7cdbf3a8f969ffb"
+});
+db=firebase.database();
+ref=db.ref('ptde2025_v2');
 
-// Firebase
-const fbConfig = {
-    apiKey: "AIzaSyBw68QgbiMw3XgpWwrVhSuqgE_xeH0rvPo",
-    authDomain: "pokeex-bb85b.firebaseapp.com",
-    databaseURL: "https://pokeex-bb85b-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "pokeex-bb85b",
-    storageBucket: "pokeex-bb85b.firebasestorage.app",
-    messagingSenderId: "406912833698",
-    appId: "1:406912833698:web:22f9e5b7cdbf3a8f969ffb"
-};
-
-function initFB() {
-    try {
-        firebase.initializeApp(fbConfig);
-        db = firebase.database();
-        ref = db.ref('tournament_de');
-        db.ref('.info/connected').on('value', s => {
-            const on = s.val();
-            document.getElementById('syncDot').className = 'sync-dot' + (on ? '' : ' off');
-            document.getElementById('syncText').textContent = on ? 'เชื่อมต่อแล้ว' : 'ไม่ได้เชื่อมต่อ';
-        });
-        ref.on('value', snap => {
-            const d = snap.val();
-            if (d) {
-                if (d.scores) scores = d.scores;
-                if (d.groupMatches) groupMatches = d.groupMatches;
-                if (d.de) deData = {...deData, ...d.de};
-            }
-            initTeams();
-            renderStandings();
-            renderBracket();
-        });
-    } catch(e) {
-        console.error(e);
-        initTeams();
-        renderStandings();
-    }
-}
-
-function saveFB() {
-    if (!ref) return;
-    ref.set({ scores, groupMatches, de: deData, t: Date.now() }).catch(console.error);
-}
-
-// ─── STANDINGS ─────────────────────────────────────────────────────────────
-function renderStandings() {
-    const el = document.getElementById('standingsGrid');
-    const sorted = [...TEAMS].sort((a,b) => {
-        const la = scores[a]?.losses || 0, lb = scores[b]?.losses || 0;
-        if (la !== lb) return la - lb;
-        return (scores[b]?.total || 0) - (scores[a]?.total || 0);
-    });
-
-    el.innerHTML = sorted.map((team, i) => {
-        const s = scores[team] || {};
-        const losses = s.losses || 0;
-        const elim = losses >= 2;
-        const lossClass = elim ? 'losses-2' : losses === 1 ? 'losses-1' : 'losses-0';
-        const lossLabel = elim ? '❌ ตกรอบ' : losses === 1 ? '⚠️ แพ้ 1' : '✅ ยังอยู่';
-
-        // match dots from groupMatches
-        const matchDots = ['match1','match2','match3','match4'].map(mk => {
-            const m = groupMatches[mk];
-            if (!m || (!m.team1 && !m.team2)) return `<div class="match-dot dot-empty">${mk.replace('match','M')}</div>`;
-            const isTeam1 = m.team1 === team, isTeam2 = m.team2 === team;
-            if (!isTeam1 && !isTeam2) return `<div class="match-dot dot-empty">${mk.replace('match','M')}</div>`;
-            const won = (m.winner === 'team1' && isTeam1) || (m.winner === 'team2' && isTeam2);
-            const lost = m.winner && !won;
-            if (!m.winner) return `<div class="match-dot" style="border-color:rgba(255,255,255,0.2);color:#666">${mk.replace('match','M')}</div>`;
-            return `<div class="match-dot ${won ? 'dot-win' : 'dot-loss'}">${won ? 'W' : 'L'}</div>`;
-        }).join('');
-
-        return `
-        <div class="team-card ${elim ? 'eliminated' : ''}">
-            <div class="team-card-header">
-                <div>
-                    <div style="font-size:11px;color:#444;letter-spacing:1px;margin-bottom:3px">#${i+1}</div>
-                    <div class="team-name">${team}</div>
-                </div>
-                <div style="text-align:right">
-                    <div class="team-score">${s.total || 0}</div>
-                    <div style="font-size:10px;color:#444;letter-spacing:1px">POINTS</div>
-                </div>
-            </div>
-            <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-                <span class="losses-badge ${lossClass}">${lossLabel}</span>
-                ${deData.qualifiers.includes(team) ? '<span style="font-size:10px;color:var(--gold);letter-spacing:1px">🏆 QUALIFIED</span>' : ''}
-            </div>
-            <div class="match-dots">
-                ${matchDots}
-                <span class="match-label">Matches</span>
-            </div>
-            <div style="padding:0 18px 12px;display:flex;gap:20px">
-                <div style="text-align:center">
-                    <div style="font-size:18px;font-weight:700;color:var(--win)">${s.match1||0}</div>
-                    <div style="font-size:9px;color:#333;letter-spacing:1px">M1</div>
-                </div>
-                <div style="text-align:center">
-                    <div style="font-size:18px;font-weight:700;color:var(--win)">${s.match2||0}</div>
-                    <div style="font-size:9px;color:#333;letter-spacing:1px">M2</div>
-                </div>
-                <div style="text-align:center">
-                    <div style="font-size:18px;font-weight:700;color:var(--win)">${s.match3||0}</div>
-                    <div style="font-size:9px;color:#333;letter-spacing:1px">M3</div>
-                </div>
-                <div style="text-align:center">
-                    <div style="font-size:18px;font-weight:700;color:var(--win)">${s.match4||0}</div>
-                    <div style="font-size:9px;color:#333;letter-spacing:1px">M4</div>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// ─── BRACKET ────────────────────────────────────────────────────────────────
-function renderBracket() {
-    const container = document.getElementById('bracketContainer');
-    const champSection = document.getElementById('championSection');
-
-    if (!deData.qualifiers || deData.qualifiers.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:60px 40px;color:#333;width:100%">
-            <div style="font-size:48px;margin-bottom:12px">🏆</div>
-            <div style="font-family:'Orbitron',monospace;font-size:14px;letter-spacing:2px">ยังไม่มีข้อมูล Bracket</div>
-            <div style="font-size:12px;color:#222;margin-top:8px">กรุณาสร้าง Bracket จาก Admin Panel</div>
-        </div>`;
-        champSection.innerHTML = '';
-        return;
-    }
-
-    const stages = [
-        { key: 'wr1', label: 'WINNERS R1', section: 'upper' },
-        { key: 'wr2', label: 'WINNERS R2', section: 'upper' },
-        { key: 'lr1', label: 'LOSERS R1', section: 'lower' },
-        { key: 'lr2', label: 'LOSERS R2', section: 'lower' },
-        { key: 'lr3', label: 'LOSERS R3', section: 'lower' },
-        { key: 'wf',  label: 'WINNERS FINAL', section: 'upper' },
-        { key: 'lf',  label: 'LOSERS FINAL', section: 'lower' },
-        { key: 'gf',  label: 'GRAND FINAL', section: 'grand' },
-        { key: 'gfr', label: 'GF RESET', section: 'grand' },
-    ];
-
-    let html = '';
-    stages.forEach(st => {
-        const matches = deData[st.key];
-        if (!matches || matches.length === 0) return;
-
-        const sectionColor = st.section === 'upper' ? '#22c55e' : st.section === 'lower' ? '#ff6060' : '#ffd700';
-        const sectionBg = st.section === 'upper' ? 'rgba(34,197,94,0.06)' : st.section === 'lower' ? 'rgba(239,68,68,0.06)' : 'rgba(255,215,0,0.06)';
-
-        html += `<div class="bracket-round" style="background:${sectionBg};border-radius:10px;padding:8px 0">`;
-        html += `<div class="round-label" style="color:${sectionColor}">${st.label}</div>`;
-        html += `<div class="bracket-matches">`;
-
-        matches.forEach((m, idx) => {
-            const isChamp = st.key === 'gf' || st.key === 'gfr';
-            const t1 = m.team1 || 'TBD', t2 = m.team2 || 'TBD';
-            const hasWinner = !!m.winner;
-            const t1Win = hasWinner && m.winner === t1;
-            const t2Win = hasWinner && m.winner === t2;
-            html += `
-            <div class="b-match ${isChamp ? 'champion-match' : ''}">
-                <div style="font-size:9px;text-align:center;padding:3px;background:rgba(0,0,0,0.3);color:#333;letter-spacing:2px;text-transform:uppercase">${st.label} · M${idx+1}</div>
-                <div class="b-team ${t1Win ? 'winner' : hasWinner ? 'loser' : m.team1 ? '' : 'tbd'}">
-                    ${t1Win ? '<span class="b-trophy">🏆</span>' : ''}
-                    <span class="b-team-name">${t1}</span>
-                </div>
-                <div class="b-team ${t2Win ? 'winner' : hasWinner ? 'loser' : m.team2 ? '' : 'tbd'}">
-                    ${t2Win ? '<span class="b-trophy">🏆</span>' : ''}
-                    <span class="b-team-name">${t2}</span>
-                </div>
-            </div>`;
-        });
-
-        html += `</div></div>`;
-    });
-
-    container.innerHTML = html || `<div style="padding:40px;color:#333;text-align:center;width:100%">Bracket ยังไม่พร้อม</div>`;
-
-    // Champion
-    if (deData.champion) {
-        champSection.innerHTML = `
-        <div style="margin-top:28px;display:flex;justify-content:center">
-            <div class="champion-box" style="max-width:320px;width:100%">
-                <span class="champion-trophy">🏆</span>
-                <div style="font-size:12px;letter-spacing:3px;color:#aaa;margin-bottom:8px">CHAMPION</div>
-                <div class="champion-name">${deData.champion}</div>
-                <div style="font-size:11px;color:#666;margin-top:8px;letter-spacing:1px">ผู้ชนะการแข่งขัน PokéTourney 2025</div>
-            </div>
-        </div>`;
-    } else {
-        champSection.innerHTML = '';
-    }
-}
-
-// ─── VIEWS ──────────────────────────────────────────────────────────────────
-function switchView(v) {
-    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-    if (v === 'standings') {
-        document.getElementById('standingsView').classList.add('active');
-        document.getElementById('btnStandings').classList.add('active');
-    } else {
-        document.getElementById('bracketView').classList.add('active');
-        document.getElementById('btnBracket').classList.add('active');
-        renderBracket();
-    }
-}
-
-// ─── ADMIN ──────────────────────────────────────────────────────────────────
-function openAdmin() {
-    if (isAdmin) {
-        openDash();
-    } else {
-        document.getElementById('loginModal').classList.add('open');
-        setTimeout(() => document.getElementById('pwInput').focus(), 100);
-    }
-}
-
-function doLogin() {
-    const pw = document.getElementById('pwInput').value;
-    if (pw === ADMIN_PASS) {
-        isAdmin = true;
-        closeModal('loginModal');
-        document.getElementById('pwInput').value = '';
-        openDash();
-    } else {
-        alert('รหัสผ่านไม่ถูกต้อง');
-    }
-}
-
-function openDash() {
-    populateAdminSelects();
-    document.getElementById('adminModal').classList.add('open');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-}
-
-function switchTab(t) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(t).classList.add('active');
-    const idx = ['tScores','tMatches','tBracket'].indexOf(t);
-    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-    if (t === 'tMatches') renderMatchList();
-    if (t === 'tBracket') { renderQualifierList(); refreshKOMatch(); }
-}
-
-function populateAdminSelects() {
-    // Teams for score tab
-    const sTeam = document.getElementById('sTeam');
-    sTeam.innerHTML = TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
-    // Teams for match tab
-    const opts = TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
-    document.getElementById('mTeam1').innerHTML = opts;
-    document.getElementById('mTeam2').innerHTML = opts;
-    refreshScoreDisplay();
-}
-
-// SCORES
-function refreshScoreDisplay() {
-    const team = document.getElementById('sTeam').value;
-    const match = document.getElementById('sMatch').value;
-    currentScore = scores[team]?.[match] || 0;
-    document.getElementById('scoreDisplay').textContent = currentScore;
-}
-
-function adjScore(d) {
-    currentScore = Math.max(0, currentScore + d);
-    document.getElementById('scoreDisplay').textContent = currentScore;
-}
-
-function saveScore() {
-    const team = document.getElementById('sTeam').value;
-    const match = document.getElementById('sMatch').value;
-    if (!scores[team]) scores[team] = {match1:0,match2:0,match3:0,match4:0,total:0,losses:0};
-    scores[team][match] = currentScore;
-    scores[team].total = (scores[team].match1||0)+(scores[team].match2||0)+(scores[team].match3||0)+(scores[team].match4||0);
-    saveFB();
-    renderStandings();
-    alert('✅ บันทึกคะแนนสำเร็จ');
-}
-
-function resetScore() {
-    const team = document.getElementById('sTeam').value;
-    const match = document.getElementById('sMatch').value;
-    if (!confirm(`รีเซ็ตคะแนน ${match} ของ ${team}?`)) return;
-    if (!scores[team]) scores[team] = {match1:0,match2:0,match3:0,match4:0,total:0,losses:0};
-    scores[team][match] = 0;
-    scores[team].total = (scores[team].match1||0)+(scores[team].match2||0)+(scores[team].match3||0)+(scores[team].match4||0);
-    currentScore = 0;
-    document.getElementById('scoreDisplay').textContent = 0;
-    saveFB();
-    renderStandings();
-    alert('✅ รีเซ็ตสำเร็จ');
-}
-
-// MATCHES
-function saveMatch() {
-    const mk = document.getElementById('mMatchNum').value;
-    const t1 = document.getElementById('mTeam1').value;
-    const t2 = document.getElementById('mTeam2').value;
-    const w = document.getElementById('mWinner').value;
-    if (t1 === t2) { alert('ทีมต้องต่างกัน!'); return; }
-    groupMatches[mk] = { team1: t1, team2: t2, winner: w || null };
-
-    // Update losses based on winner
-    if (w) {
-        const loser = w === 'team1' ? t2 : t1;
-        if (!scores[loser]) scores[loser] = {match1:0,match2:0,match3:0,match4:0,total:0,losses:0};
-        // Recalculate losses from all matches
-        recalcLosses();
-    }
-
-    saveFB();
-    renderStandings();
-    renderMatchList();
-    alert('✅ บันทึกแมทช์สำเร็จ');
-}
-
-function recalcLosses() {
-    // Reset all losses
-    TEAMS.forEach(t => { if (scores[t]) scores[t].losses = 0; });
-    // Count from groupMatches
-    Object.values(groupMatches).forEach(m => {
-        if (!m || !m.winner) return;
-        const loser = m.winner === 'team1' ? m.team2 : m.team1;
-        if (loser && scores[loser]) scores[loser].losses = (scores[loser].losses || 0) + 1;
-    });
-    // Count from DE bracket
-    ['wr1','wr2','lr1','lr2','lr3','wf','lf','gf','gfr'].forEach(stg => {
-        const ms = deData[stg] || [];
-        ms.forEach(m => {
-            if (!m.winner) return;
-            const loser = m.winner === m.team1 ? m.team2 : m.team1;
-            if (loser && scores[loser]) scores[loser].losses = (scores[loser].losses || 0) + 1;
-        });
-    });
-}
-
-function deleteMatch() {
-    const mk = document.getElementById('mMatchNum').value;
-    if (!confirm(`ลบ ${mk}?`)) return;
-    delete groupMatches[mk];
-    recalcLosses();
-    saveFB();
-    renderStandings();
-    renderMatchList();
-    alert('✅ ลบสำเร็จ');
-}
-
-function renderMatchList() {
-    const el = document.getElementById('matchListEl');
-    const keys = Object.keys(groupMatches);
-    if (keys.length === 0) { el.innerHTML = '<div style="color:#444;font-size:12px;text-align:center;padding:16px">ไม่มีแมทช์</div>'; return; }
-    el.innerHTML = '<div style="font-family:Orbitron,monospace;font-size:11px;letter-spacing:2px;color:var(--cyan);margin-bottom:10px">รายการแมทช์</div>' +
-        keys.map(mk => {
-            const m = groupMatches[mk];
-            const w = m.winner ? (m.winner === 'team1' ? `🏆 ${m.team1}` : `🏆 ${m.team2}`) : 'ยังไม่มีผู้ชนะ';
-            return `<div class="match-item">
-                <div style="font-size:10px;color:var(--cyan);letter-spacing:1px;margin-bottom:6px">${mk.toUpperCase()}</div>
-                <div class="vs-row">
-                    <span style="flex:1">${m.team1||'?'}</span>
-                    <span class="vs-text">VS</span>
-                    <span style="flex:1;text-align:right">${m.team2||'?'}</span>
-                </div>
-                <div style="font-size:11px;text-align:center;margin-top:6px;color:${m.winner ? 'var(--win)' : '#444'}">${w}</div>
-            </div>`;
-        }).join('');
-}
-
-// BRACKET
-function renderQualifierList() {
-    const el = document.getElementById('qualifierList');
-    const sorted = [...TEAMS].sort((a,b) => (scores[b]?.total||0) - (scores[a]?.total||0));
-    el.innerHTML = sorted.map((t, i) => {
-        const sel = deData.qualifiers.includes(t);
-        const lossClass = (scores[t]?.losses||0) >= 2 ? 'rank-other' : i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : 'rank-other';
-        return `<div class="qualifier-item ${sel ? 'selected' : ''}" onclick="toggleQualifier('${t}', this)">
-            <div class="qualifier-check">${sel ? '✓' : ''}</div>
-            <div class="rank-badge ${lossClass}">${i+1}</div>
-            <div style="flex:1;font-size:13px;font-weight:600">${t}</div>
-            <div style="font-size:12px;color:#555">${scores[t]?.total||0} pts</div>
-            ${(scores[t]?.losses||0) >= 2 ? '<span class="elim-tag">ตกรอบ</span>' : ''}
-        </div>`;
-    }).join('');
-}
-
-function toggleQualifier(team, el) {
-    const idx = deData.qualifiers.indexOf(team);
-    if (idx > -1) {
-        deData.qualifiers.splice(idx, 1);
-        el.classList.remove('selected');
-        el.querySelector('.qualifier-check').textContent = '';
-    } else {
-        deData.qualifiers.push(team);
-        el.classList.add('selected');
-        el.querySelector('.qualifier-check').textContent = '✓';
-    }
-    saveFB();
-}
-
-function genBracket() {
-    const q = deData.qualifiers;
-    if (q.length < 4) { alert('เลือกอย่างน้อย 4 ทีม'); return; }
-    if (q.length !== 4 && q.length !== 8) { alert('รองรับ 4 หรือ 8 ทีมเท่านั้น'); return; }
-
-    // Build WR1
-    deData.wr1 = [];
-    for (let i = 0; i < q.length; i += 2) {
-        deData.wr1.push({ team1: q[i], team2: q[i+1]||'TBD', winner: null });
-    }
-    // Initialize other stages
-    if (q.length === 8) {
-        deData.wr2 = [ {team1:null,team2:null,winner:null}, {team1:null,team2:null,winner:null} ];
-        deData.lr1 = [ {team1:null,team2:null,winner:null}, {team1:null,team2:null,winner:null} ];
-        deData.lr2 = [ {team1:null,team2:null,winner:null}, {team1:null,team2:null,winner:null} ];
-        deData.lr3 = [ {team1:null,team2:null,winner:null} ];
-    } else {
-        deData.wr2 = [];
-        deData.lr1 = [ {team1:null,team2:null,winner:null} ];
-        deData.lr2 = [];
-        deData.lr3 = [];
-    }
-    deData.wf = [ {team1:null,team2:null,winner:null} ];
-    deData.lf = [ {team1:null,team2:null,winner:null} ];
-    deData.gf = [ {team1:null,team2:null,winner:null} ];
-    deData.gfr = [];
-    deData.champion = null;
-
-    saveFB();
-    renderBracket();
-    alert('✅ สร้าง Bracket สำเร็จ! ไปดูที่แท็บ Bracket');
-}
-
-function refreshKOMatch() {
-    const stage = document.getElementById('koStage').value;
-    const sel = document.getElementById('koMatchSel');
-    const ms = deData[stage] || [];
-    sel.innerHTML = ms.map((m,i) => `<option value="${i}">Match ${i+1}</option>`).join('') || '<option value="">ไม่มีข้อมูล</option>';
-    refreshKOWinner();
-}
-
-function refreshKOWinner() {
-    const stage = document.getElementById('koStage').value;
-    const idx = parseInt(document.getElementById('koMatchSel').value) || 0;
-    const ms = deData[stage] || [];
-    const m = ms[idx] || {};
-    const w = document.getElementById('koWinner');
-    w.innerHTML = `<option value="">เลือกผู้ชนะ</option>` +
-        (m.team1 ? `<option value="${m.team1}">${m.team1}</option>` : '') +
-        (m.team2 ? `<option value="${m.team2}">${m.team2}</option>` : '');
-}
-
-function saveKOResult() {
-    const stage = document.getElementById('koStage').value;
-    const idx = parseInt(document.getElementById('koMatchSel').value) || 0;
-    const winner = document.getElementById('koWinner').value;
-    if (!winner) { alert('กรุณาเลือกผู้ชนะ'); return; }
-
-    if (!deData[stage] || !deData[stage][idx]) { alert('ไม่พบแมทช์'); return; }
-    const m = deData[stage][idx];
-    const loser = winner === m.team1 ? m.team2 : m.team1;
-    m.winner = winner;
-
-    // Auto-advance logic
-    if (stage === 'wr1') {
-        // Winners advance to WR2 or WF; losers go to LR1
-        const wIdx = Math.floor(idx / 2);
-        if (deData.wr2 && deData.wr2[wIdx]) {
-            if (idx % 2 === 0) deData.wr2[wIdx].team1 = winner;
-            else deData.wr2[wIdx].team2 = winner;
-        } else if (deData.wf[0]) {
-            if (idx % 2 === 0) deData.wf[0].team1 = winner;
-            else deData.wf[0].team2 = winner;
-        }
-        if (loser && deData.lr1[Math.floor(idx/2)]) {
-            if (idx % 2 === 0) deData.lr1[Math.floor(idx/2)].team1 = loser;
-            else deData.lr1[Math.floor(idx/2)].team2 = loser;
-        } else if (loser && deData.lr1[idx]) {
-            deData.lr1[idx].team1 = loser;
-        }
-    } else if (stage === 'wr2') {
-        const wIdx = Math.floor(idx/2);
-        if (deData.wf[0]) {
-            if (idx % 2 === 0) deData.wf[0].team1 = winner;
-            else deData.wf[0].team2 = winner;
-        }
-        if (loser && deData.lr2[idx]) deData.lr2[idx].team2 = loser;
-        else if (loser && deData.lr3[0]) deData.lr3[0].team2 = loser;
-    } else if (stage === 'lr1') {
-        if (loser) { /* eliminated */ }
-        if (deData.lr2[idx]) deData.lr2[idx].team1 = winner;
-        else if (deData.lr3[0]) deData.lr3[0].team1 = winner;
-        else if (deData.lf[0]) deData.lf[0].team1 = winner;
-    } else if (stage === 'lr2') {
-        if (loser) { /* eliminated */ }
-        const lrIdx = Math.floor(idx/2);
-        if (deData.lr3[lrIdx]) {
-            if (idx % 2 === 0) deData.lr3[lrIdx].team1 = winner;
-            else deData.lr3[lrIdx].team2 = winner;
-        } else if (deData.lf[0]) {
-            if (idx === 0) deData.lf[0].team1 = winner;
-            else deData.lf[0].team2 = winner;
-        }
-    } else if (stage === 'lr3') {
-        if (loser) { /* eliminated */ }
-        if (deData.lf[0]) deData.lf[0].team2 = winner;
-    } else if (stage === 'wf') {
-        if (deData.gf[0]) deData.gf[0].team1 = winner;
-        if (loser && deData.lf[0]) deData.lf[0].team1 = loser;
-    } else if (stage === 'lf') {
-        if (deData.gf[0]) deData.gf[0].team2 = winner;
-    } else if (stage === 'gf') {
-        // If upper bracket winner loses, grand final reset
-        const ufWinner = deData.wf[0]?.winner;
-        if (loser === ufWinner) {
-            // Reset needed
-            if (deData.gfr.length === 0) {
-                deData.gfr = [{ team1: winner, team2: loser, winner: null }];
-            }
-        } else {
-            deData.champion = winner;
-        }
-    } else if (stage === 'gfr') {
-        deData.champion = winner;
-    }
-
-    // Recalculate losses
-    recalcLosses();
-    saveFB();
-    renderBracket();
-    renderStandings();
-    refreshKOMatch();
-    alert('✅ บันทึกผลสำเร็จ');
-}
-
-// CLOSE MODAL on backdrop click
-document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+db.ref('.info/connected').on('value',s=>{
+  const on=s.val();
+  document.getElementById('syncDot').className='sync-dot'+(on?'':' off');
+  document.getElementById('syncText').textContent=on?'เชื่อมต่อแล้ว':'ไม่ได้เชื่อมต่อ';
 });
 
-// INIT
-window.addEventListener('load', initFB);
+ref.on('value',snap=>{
+  const d=snap.val();
+  if(d){
+    if(d.qualifiers) S.qualifiers=d.qualifiers;
+    if(d.rounds) S.rounds={...S.rounds,...d.rounds};
+    if(d.scores) S.scores=d.scores;
+    if(d.champion!==undefined) S.champion=d.champion;
+  }
+  render();
+});
+
+function save(){ref.set({...S,ts:Date.now()}).catch(console.error)}
+
+/* RENDER */
+function mcHTML(m,lbl,grand=false){
+  const t1=m.t1||null,t2=m.t2||null,w=m.w||null;
+  const c1=!t1?'tbd':w===t1?'win':w?'lose':'pending';
+  const c2=!t2?'tbd':w===t2?'win':w?'lose':'pending';
+  return `<div class="mc${grand?' gm':''}">
+    <div class="mc-top">${lbl}</div>
+    <div class="mc-t ${c1}">${w===t1?'<span style="font-size:10px;margin-right:5px">🏆</span>':''}<span class="mc-t-name">${t1||'TBD'}</span></div>
+    <div class="mc-vs">VS</div>
+    <div class="mc-t ${c2}">${w===t2?'<span style="font-size:10px;margin-right:5px">🏆</span>':''}<span class="mc-t-name">${t2||'TBD'}</span></div>
+  </div>`;
+}
+
+function roundHTML(key,lbl,ms){
+  if(!ms||!ms.length)return'';
+  const grand=key==='GF'||key==='GFR';
+  return `<div class="round">
+    <div class="r-lbl">${lbl}</div>
+    <div class="r-matches">${ms.map((m,i)=>mcHTML(m,`${key} · M${i+1}`,grand)).join('')}</div>
+  </div>`;
+}
+
+function render(){
+  const root=document.getElementById('bracketRoot');
+  const cr=document.getElementById('champRoot');
+
+  if(!S.qualifiers||!S.qualifiers.length){
+    root.innerHTML=`<div class="empty"><i class="fas fa-sitemap"></i><h3>ยังไม่มี Bracket</h3><p>กด ⚙️ เพื่อสร้าง Bracket</p></div>`;
+    cr.innerHTML='';return;
+  }
+
+  const R=S.rounds;
+  let html='';
+
+  // UPPER
+  const ur=[
+    {k:'WR1',l:'WR1 — Round of 12'},{k:'WR2',l:'WR2 — Round of 6'},
+    {k:'WR3',l:'WR3 — Semis'},{k:'WF',l:'Winners Final'},
+  ].filter(r=>R[r.k]&&R[r.k].length);
+
+  if(ur.length){
+    html+=`<div class="section upper">
+      <div class="sec-hdr"><div class="sec-lbl">WINNERS BRACKET</div><div class="sec-line"></div></div>
+      <div class="scroll-x"><div class="rounds">${ur.map(r=>roundHTML(r.k,r.l,R[r.k])).join('')}</div></div>
+    </div>`;
+  }
+
+  // LOWER
+  const lr=[
+    {k:'LR1',l:'LR1'},{k:'LR2',l:'LR2'},{k:'LR3',l:'LR3'},{k:'LR4',l:'LR4 — Semis'},{k:'LF',l:'Losers Final'},
+  ].filter(r=>R[r.k]&&R[r.k].length);
+
+  if(lr.length){
+    html+=`<div class="section lower">
+      <div class="sec-hdr"><div class="sec-lbl">LOSERS BRACKET</div><div class="sec-line"></div></div>
+      <div class="scroll-x"><div class="rounds">${lr.map(r=>roundHTML(r.k,r.l,R[r.k])).join('')}</div></div>
+    </div>`;
+  }
+
+  // GRAND
+  const gr=[
+    {k:'GF',l:'Grand Final'},{k:'GFR',l:'GF Reset'},
+  ].filter(r=>R[r.k]&&R[r.k].length);
+
+  if(gr.length){
+    html+=`<div class="section grand">
+      <div class="sec-hdr"><div class="sec-lbl">GRAND FINAL</div><div class="sec-line"></div></div>
+      <div class="gf-center">${gr.map(r=>`<div class="gf-round">${roundHTML(r.k,r.l,R[r.k])}</div>`).join('')}</div>
+    </div>`;
+  }
+
+  root.innerHTML=html||'';
+
+  cr.innerHTML=S.champion?`<div class="champ-wrap">
+    <div class="champ-box">
+      <span class="champ-trophy">🏆</span>
+      <div class="champ-ttl">CHAMPION</div>
+      <div class="champ-name">${S.champion}</div>
+      <div class="champ-sub">ผู้ชนะ PokéTourney 2025</div>
+    </div>
+  </div>`:'';
+}
+
+/* BUILD BRACKET — 12 teams standard DE */
+function buildBracket(){
+  const q=S.qualifiers;
+  if(q.length!==12){alert(`เลือกครบ 12 ทีมก่อน (ตอนนี้ ${q.length} ทีม)`);return}
+  if(!confirm('สร้าง Bracket ใหม่?'))return;
+
+  // WR1: seeds 1v12, 2v11, 3v10, 4v9, 5v8, 6v7  (6 matches)
+  const wr1=[
+    {t1:q[0],t2:q[11],w:null},{t1:q[1],t2:q[10],w:null},{t1:q[2],t2:q[9],w:null},
+    {t1:q[3],t2:q[8],w:null},{t1:q[4],t2:q[7],w:null},{t1:q[5],t2:q[6],w:null}
+  ];
+  // WR2: 3 matches (winners of WR1 pairs: M1vsM6, M2vsM5, M3vsM4)
+  const wr2=[{t1:null,t2:null,w:null},{t1:null,t2:null,w:null},{t1:null,t2:null,w:null}];
+  // WR3: 1 match (WR2 winners M1 vs M2; M3 winner gets bye → WF)
+  const wr3=[{t1:null,t2:null,w:null}];
+  // WF: 1 match
+  const wf=[{t1:null,t2:null,w:null}];
+  // LR1: 3 matches (WR1 losers: L1vsL6, L2vsL5, L3vsL4)
+  const lr1=[{t1:null,t2:null,w:null},{t1:null,t2:null,w:null},{t1:null,t2:null,w:null}];
+  // LR2: 3 matches (LR1 winners vs WR2 losers)
+  const lr2=[{t1:null,t2:null,w:null},{t1:null,t2:null,w:null},{t1:null,t2:null,w:null}];
+  // LR3: 2 matches (LR2 winners pair up: M1vsM2, M3 winner → LR4 with bye... use 1 match + 1)
+  const lr3=[{t1:null,t2:null,w:null},{t1:null,t2:null,w:null}];
+  // LR4: 1 match (LR3[0] winner vs LR3[1] winner, or vs WR3 loser)
+  const lr4=[{t1:null,t2:null,w:null}];
+  // LF: 1 match
+  const lf=[{t1:null,t2:null,w:null}];
+  // GF
+  const gf=[{t1:null,t2:null,w:null}];
+
+  S.rounds={WR1:wr1,WR2:wr2,WR3:wr3,WF:wf,LR1:lr1,LR2:lr2,LR3:lr3,LR4:lr4,LF:lf,GF:gf,GFR:[]};
+  S.champion=null;
+  save();render();
+  alert('✅ สร้าง Bracket สำเร็จ!');
+}
+
+function resetAll(){
+  if(!confirm('รีเซ็ตทั้งหมด?'))return;
+  S.qualifiers=[];
+  S.rounds={WR1:[],WR2:[],WR3:[],WF:[],LR1:[],LR2:[],LR3:[],LR4:[],LF:[],GF:[],GFR:[]};
+  S.champion=null;
+  save();render();
+}
+
+/* RESULT */
+function refreshMS(){
+  const stg=document.getElementById('stgS').value;
+  const ms=S.rounds[stg]||[];
+  document.getElementById('mS').innerHTML=ms.length
+    ?ms.map((_,i)=>`<option value="${i}">Match ${i+1}</option>`).join('')
+    :'<option value="">ไม่มีข้อมูล</option>';
+  refreshWS();
+}
+function refreshWS(){
+  const stg=document.getElementById('stgS').value;
+  const idx=parseInt(document.getElementById('mS').value)||0;
+  const m=(S.rounds[stg]||[])[idx]||{};
+  document.getElementById('wS').innerHTML=
+    `<option value="">เลือกผู้ชนะ</option>`+
+    (m.t1?`<option value="${m.t1}">${m.t1}</option>`:'')+
+    (m.t2?`<option value="${m.t2}">${m.t2}</option>`:'');
+}
+function saveRes(){
+  const stg=document.getElementById('stgS').value;
+  const idx=parseInt(document.getElementById('mS').value)||0;
+  const win=document.getElementById('wS').value;
+  if(!win){alert('กรุณาเลือกผู้ชนะ');return}
+  const ms=S.rounds[stg];
+  if(!ms||!ms[idx]){alert('ไม่พบแมทช์');return}
+  const m=ms[idx],lose=win===m.t1?m.t2:m.t1;
+  m.w=win;
+  advance(stg,idx,win,lose);
+  save();render();refreshMS();
+  alert('✅ บันทึกผลสำเร็จ');
+}
+function clrRes(){
+  const stg=document.getElementById('stgS').value;
+  const idx=parseInt(document.getElementById('mS').value)||0;
+  const ms=S.rounds[stg];
+  if(ms&&ms[idx]){ms[idx].w=null;}
+  save();render();refreshMS();
+}
+
+/* AUTO-ADVANCE for 12-team DE */
+function advance(stg,idx,win,lose){
+  const R=S.rounds;
+  const set=(arr,i,slot,v)=>{if(arr&&arr[i]){arr[i][slot]=v}};
+
+  if(stg==='WR1'){
+    // WR1 pairs: (0,5),(1,4),(2,3) → WR2 matches 0,1,2
+    const wm=idx<3?idx:5-idx;
+    const slot=idx<3?'t1':'t2';
+    set(R.WR2,wm,slot,win);
+    // LR1 pairs: losers L0vsL5, L1vsL4, L2vsL3
+    const lm=idx<3?idx:5-idx;
+    const lslot=idx<3?'t1':'t2';
+    set(R.LR1,lm,lslot,lose);
+  }
+  else if(stg==='WR2'){
+    // WR2[0],[1] → WR3[0]; WR2[2] → WF.t1 (bye)
+    if(idx===0)set(R.WR3,0,'t1',win);
+    else if(idx===1)set(R.WR3,0,'t2',win);
+    else if(idx===2)set(R.WF,0,'t1',win);
+    // WR2 losers → LR2 (match idx)
+    set(R.LR2,idx,'t2',lose);
+  }
+  else if(stg==='WR3'){
+    set(R.WF,0,'t2',win);
+    // WR3 loser → LR4.t2
+    set(R.LR4,0,'t2',lose);
+  }
+  else if(stg==='WF'){
+    set(R.GF,0,'t1',win);
+    set(R.LF,0,'t2',lose);
+  }
+  else if(stg==='LR1'){
+    // LR1 winners → LR2[idx].t1
+    set(R.LR2,idx,'t1',win);
+    // loser eliminated
+  }
+  else if(stg==='LR2'){
+    // LR2 [0,1,2] → LR3 [0,1] (0 vs 1 → LR3[0], 2 → LR3[1].t1 with bye implied, or pair up differently)
+    // Use: LR2[0]→LR3[0].t1, LR2[1]→LR3[0].t2, LR2[2]→LR3[1].t1
+    if(idx===0)set(R.LR3,0,'t1',win);
+    else if(idx===1)set(R.LR3,0,'t2',win);
+    else if(idx===2)set(R.LR3,1,'t1',win);
+    // loser eliminated
+  }
+  else if(stg==='LR3'){
+    // LR3[0] winner → LR4.t1; LR3[1] winner → LR4.t1 override or LR4.t2 check
+    if(idx===0)set(R.LR4,0,'t1',win);
+    else if(idx===1){
+      // LR3[1] winner plays against WR3 loser already in LR4.t2, so they form a new match
+      // → use LR4 differently: maybe LR3[1] winner is second match? Simplify to single LR4
+      // Put in t1 if empty, else... just overwrite t2 as a "second path" to LF
+      if(!R.LR4[0]||!R.LR4[0].t1) set(R.LR4,0,'t1',win);
+      // For this structure, LR3 has 1 extra winner; just pipe to LF directly
+      else set(R.LF,0,'t1',win);
+    }
+    // loser eliminated
+  }
+  else if(stg==='LR4'){
+    set(R.LF,0,'t1',win);
+    // loser eliminated
+  }
+  else if(stg==='LF'){
+    set(R.GF,0,'t2',win);
+    // loser eliminated
+  }
+  else if(stg==='GF'){
+    const wfW=R.WF[0]?.w;
+    if(lose===wfW){
+      // upper bracket winner lost → reset
+      if(!R.GFR.length) R.GFR=[{t1:win,t2:lose,w:null}];
+    } else {
+      S.champion=win;
+    }
+  }
+  else if(stg==='GFR'){
+    S.champion=win;
+  }
+}
+
+/* ADMIN UI */
+function openAdmin(){
+  if(isAdmin){openDash()}else{document.getElementById('loginOv').classList.add('open');setTimeout(()=>document.getElementById('pwIn').focus(),100)}
+}
+function doLogin(){
+  if(document.getElementById('pwIn').value===PASS){
+    isAdmin=true;closeOv('loginOv');document.getElementById('pwIn').value='';openDash();
+  }else{alert('รหัสผ่านไม่ถูกต้อง')}
+}
+function openDash(){
+  popQL();popST();refreshMS();
+  document.getElementById('adminOv').classList.add('open');
+}
+function closeOv(id){document.getElementById(id).classList.remove('open')}
+function sTab(i){
+  document.querySelectorAll('.tb').forEach((b,j)=>b.className='tb'+(i===j?' on':''));
+  document.querySelectorAll('.tp').forEach((p,j)=>p.className='tp'+(i===j?' on':''));
+  if(i===0)popQL();if(i===1)refreshMS();if(i===2)popST();
+}
+
+function popQL(){
+  const el=document.getElementById('qList');
+  document.getElementById('qCnt').textContent=S.qualifiers.length;
+  el.innerHTML=TEAMS.map((t,i)=>{
+    const sel=S.qualifiers.includes(t);
+    const rkc=i===0?'rk1':i===1?'rk2':i===2?'rk3':'rkn';
+    return `<div class="qi${sel?' sel':''}" onclick="toggleQ('${t}',this)">
+      <div class="qi-ck">${sel?'✓':''}</div>
+      <div class="qi-rk ${rkc}">${i+1}</div>
+      <div class="qi-name">${t}</div>
+    </div>`;
+  }).join('');
+}
+function toggleQ(team,el){
+  const i=S.qualifiers.indexOf(team);
+  if(i>-1){S.qualifiers.splice(i,1);el.classList.remove('sel');el.querySelector('.qi-ck').textContent=''}
+  else{S.qualifiers.push(team);el.classList.add('sel');el.querySelector('.qi-ck').textContent='✓'}
+  document.getElementById('qCnt').textContent=S.qualifiers.length;
+  save();
+}
+
+/* SCORES */
+function popST(){document.getElementById('sT').innerHTML=TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');rSV()}
+function rSV(){const t=document.getElementById('sT').value,mk=document.getElementById('sM').value;curSc=(S.scores[t]||{})[mk]||0;document.getElementById('scV').textContent=curSc}
+function adj(d){curSc=Math.max(0,curSc+d);document.getElementById('scV').textContent=curSc}
+function saveSc(){const t=document.getElementById('sT').value,mk=document.getElementById('sM').value;if(!S.scores[t])S.scores[t]={};S.scores[t][mk]=curSc;save();alert('✅ บันทึก')}
+function rstSc(){const t=document.getElementById('sT').value,mk=document.getElementById('sM').value;if(!S.scores[t])S.scores[t]={};S.scores[t][mk]=0;curSc=0;document.getElementById('scV').textContent=0;save();alert('✅ รีเซ็ต')}
+
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
 </script>
 </body>
 </html>
